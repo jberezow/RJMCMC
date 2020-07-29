@@ -69,7 +69,7 @@ struct LeafNode <: Node
     interval::Interval
 end
 
-#This function generates segments for "proposals"
+#This function recursively generates segments for "proposals"
 @gen function generate_segments(l::Float64, u::Float64)
     interval = Interval(l, u)
     if @trace(bernoulli(0.7), :isleaf)
@@ -148,11 +148,26 @@ end;
 ##################################################################################################
 
 function summary(xs::Vector{Float64}, ys::Vector{Float64}, model, num_traces::Int)
-    #traces = [do_inference(model, xs, ys, num_traces) for _=1:12];
-    trace = Gen.simulate(changepoint_model, (xs,));
-    z = Gen.get_choices(trace)
-    z
+    counts = []
+    for i in range(1, num_traces, step=1)
+        trace = do_inference(model, xs, ys, 1);
+        tree = get_retval(trace)
+        count = 0
+        while typeof(tree) == InternalNode
+            count += 1
+            tree = tree.left
+        end
+        push!(counts, count)
+    end
+    return counts
 end;
 
-summary(xs_dense,ys_complex,changepoint_model,2)
+counts = summary(xs_dense, ys_complex, changepoint_model, 3)
+hist(counts)
 
+typeof(z)
+if typeof(z) == LeafNode
+    println("Yes")
+else
+    println("No")
+end
