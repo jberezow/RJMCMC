@@ -72,6 +72,16 @@ function hmc_mod(
     #end
 end
 
+function check_observations(choices::ChoiceMap, observations::ChoiceMap)
+    for (key, value) in get_values_shallow(observations)
+        !has_value(choices, key) && error("Check failed: observed choice at $key not found")
+        choices[key] != value && error("Check failed: value of observed choice at $key changed")
+    end
+    for (key, submap) in get_submaps_shallow(observations)
+        check_observations(get_submap(choices, key), submap)
+    end
+end
+
 check_is_kernel(::typeof(hmc_mod)) = true
 is_custom_primitive_kernel(::typeof(hmc_mod)) = false
 reversal(::typeof(hmc_mod)) = hmc_mod
