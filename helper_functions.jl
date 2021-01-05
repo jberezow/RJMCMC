@@ -60,6 +60,18 @@ function real_data_classifier(N::Int, modes::Int, σ::Float64)
     return all_samples, classes
 end;
 
+#Generative Function for Assessing Likelihood
+@gen function lh(x::Array{Float64}, trace)
+    scores = G(x,trace)
+    scores = Flux.σ.(scores)
+    y = zeros(length(scores))
+    for j=1:N
+        y[j] = @trace(categorical([1-scores[j],scores[j]]), (:y,j))
+    end
+
+    return scores
+end;
+
 ##################
 #RJ Help Functions
 ##################

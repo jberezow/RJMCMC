@@ -1,13 +1,7 @@
-function build_tree(trace,selection,θ,r,u,v,j,ϵ)
+function build_tree(trace,selection,vals,θ,r,u,v,j,ϵ)
     #Base case - take one leapfrog step in the direction of v
     if j == 0
-        θ¹,r¹ = leapfrog(trace,selection,θ,r,v*ϵ)
-        args = get_args(trace)
-        argdiffs = map((_) -> NoChange(), args)
-        retval_grad = accepts_output_grad(get_gen_fn(trace)) ? zero(get_retval(trace)) : nothing
-        (_, values_trie, _) = choice_gradients(trace, selection, retval_grad)
-        θm = from_array(values_trie, θ¹)
-        (tree_trace, _, _) = update(trace, args, argdiffs, θm)
+        θ¹,r¹,tree_trace = leapfrog(trace,selection,vals,θ,r,v*ϵ)
         score = get_score(tree_trace) - 0.5(dot(r¹,r¹))
         if u ≤ exp(score)
             C¹ = Set(tuple([θ¹,r¹]))
@@ -18,11 +12,11 @@ function build_tree(trace,selection,θ,r,u,v,j,ϵ)
         return θ¹,r¹,θ¹,r¹,C¹,s¹
     #Recursion - build left and right subtrees
     else
-        θ⁻,r⁻,θ⁺,r⁺,C¹,s¹ = build_tree(trace,selection,θ,r,u,v,j-1,ϵ)
+        θ⁻,r⁻,θ⁺,r⁺,C¹,s¹ = build_tree(trace,selection,vals,θ,r,u,v,j-1,ϵ)
         if v == -1
-            θ⁻,r⁻,_,_,C²,s² = build_tree(trace,selection,θ⁻,r⁻,u,v,j-1,ϵ)
+            θ⁻,r⁻,_,_,C²,s² = build_tree(trace,selection,vals,θ⁻,r⁻,u,v,j-1,ϵ)
         else
-            _,_,θ⁺,r⁺,C²,s² = build_tree(trace,selection,θ⁺,r⁺,u,v,j-1,ϵ)
+            _,_,θ⁺,r⁺,C²,s² = build_tree(trace,selection,vals,θ⁺,r⁺,u,v,j-1,ϵ)
         end
         i¹ = (dot((θ⁺ - θ⁻),r⁻) ≥ 0) ? 1 : 0
         i² = (dot((θ⁺ - θ⁻),r⁺) ≥ 0) ? 1 : 0
@@ -32,33 +26,31 @@ function build_tree(trace,selection,θ,r,u,v,j,ϵ)
     end
 end;
 
-function leapfrog(trace,selection,θ,r,ϵ)
+function leapfrog(trace,selection,vals,θ,r,ϵ)
+    #Prep trace and gradient
     new_trace = trace
     args = get_args(trace)
     argdiffs = map((_) -> NoChange(), args)
     retval_grad = accepts_output_grad(get_gen_fn(trace)) ? zero(get_retval(trace)) : nothing
-    (_, values_trie, _) = choice_gradients(new_trace, selection, retval_grad)
-    θtrace = from_array(values_trie, θ)
+    θtrace = from_array(vals, θ)
     (new_trace, _, _) = update(new_trace, args, argdiffs, θtrace)
     (_, values_trie, gradient_trie) = choice_gradients(new_trace, selection, retval_grad)
     gradient = to_array(gradient_trie, Float64)
-    for step=1:1
-        # half step on momenta
-        r += (ϵ / 2) * gradient
+    
+    #LEAPFROG
+    
+    r += (ϵ / 2) * gradient # half step on momenta
+    θ += ϵ .* r # full step on positions
 
-        # full step on positions
-        θ += ϵ .* r
+    # get new gradient
+    θnew = from_array(values_trie, θ)
+    (new_trace, _, _) = update(new_trace, args, argdiffs, θnew)
+    (_, _, gradient_trie) = choice_gradients(new_trace, selection, retval_grad)
+    gradient = to_array(gradient_trie, Float64)
+    
+    r += (ϵ / 2) * gradient # half step on momenta
 
-        # get new gradient
-        values_trie = from_array(values_trie, θ)
-        (new_trace, _, _) = update(new_trace, args, argdiffs, values_trie)
-        (_, _, gradient_trie) = choice_gradients(new_trace, selection, retval_grad)
-        gradient = to_array(gradient_trie, Float64)
-
-        # half step on momenta
-        r += (ϵ / 2) * gradient
-    end
-    return θ,r
+    return θ,r,new_trace
 end
 
 function sample_momenta(n::Int)
@@ -83,29 +75,32 @@ function select_selection_NUTS(trace)
     return selection
 end
 
-function NUTS(trace, selection::Selection, ϵ, check, observations, M)
-    #Get θ₀
-    Θ = []
+function NUTS(trace, selection::Selection, ϵ, check, observations, M, prev_trace)
+    #Get vals structure
     args = get_args(trace)
     retval_grad = accepts_output_grad(get_gen_fn(trace)) ? zero(get_retval(trace)) : nothing
     argdiffs = map((_) -> NoChange(), args)
-    #selection = select_selection_NUTS(trace)
-    (_, values_trie, gradient_trie) = choice_gradients(trace, selection, retval_grad)
-    θ₀ = to_array(values_trie, Float64)
-    push!(Θ, θ₀)
-    C_choice = 0
+    (_, vals, gradient_trie) = choice_gradients(trace, selection, retval_grad)
     
-    prev_model_score = get_score(trace)
+    #Initialize θ, r
+    θ₀ = to_array(vals, Float64)
     r₀ = sample_momenta(length(θ₀))
+    C_choice = tuple([θ₀, r₀])[1]
+    new_trace = trace
+    
+    #Previous scores
+    prev_model_score = get_score(prev_trace)
     prev_momenta_score = assess_momenta(r₀)
         
     #Loop M times
     for m=1:M
         #Resample Position Variables
-        r = r₀
-        θ = from_array(values_trie, θ₀)
-        (new_trace, _, _) = update(trace, args, argdiffs, θ)
+        θ = C_choice[1]
+        m == 1 ? (r = C_choice[2]) : (r = sample_momenta(length(θ)))
+        params = from_array(vals, θ)
+        (new_trace, _, _) = update(new_trace, args, argdiffs, params)
         score = exp(get_score(new_trace) - 0.5(dot(r,r)))
+        println(score)
         if score <= 0
             u = 0
         else
@@ -113,20 +108,20 @@ function NUTS(trace, selection::Selection, ϵ, check, observations, M)
         end
         
         #Initialize
-        θ⁻ = Θ[m]
-        θ⁺ = Θ[m]
-        r⁻ = r₀
-        r⁺ = r₀
+        θ⁻ = θ
+        θ⁺ = θ
+        r⁻ = r
+        r⁺ = r
         j = 0
-        C = Set(tuple([Θ[m], r₀]))
+        C = Set(tuple([θ, r]))
         s = 1
         
         while s == 1
             vⱼ = rand([-1,1])
             if vⱼ == -1
-                θ⁻,r⁻,_,_,C¹,s¹ = build_tree(trace,selection,θ⁻,r⁻,u,vⱼ,j,ϵ)
+                θ⁻,r⁻,_,_,C¹,s¹ = build_tree(new_trace,selection,vals,θ⁻,r⁻,u,vⱼ,j,ϵ)
             else
-                _,_,θ⁺,r⁺,C¹,s¹ = build_tree(trace,selection,θ⁺,r⁺,u,vⱼ,j,ϵ)
+                _,_,θ⁺,r⁺,C¹,s¹ = build_tree(new_trace,selection,vals,θ⁺,r⁺,u,vⱼ,j,ϵ)
             end
             if s¹ == 1
                 C = union(C,C¹)
@@ -138,16 +133,13 @@ function NUTS(trace, selection::Selection, ϵ, check, observations, M)
         end
         C_choice = rand(unique(C))
     end
-    θ = from_array(values_trie, C_choice[1])
-    print
+    
+    θ = from_array(vals, C_choice[1])
     momenta = C_choice[2]
     (new_trace, _, _) = update(trace, args, argdiffs, θ)
     
-    # assess new model score (negative potential energy)
-    new_model_score = get_score(new_trace)
-
-    # assess new momenta score (negative kinetic energy)
-    new_momenta_score = assess_momenta(-momenta)
+    new_model_score = get_score(new_trace) # assess new model score (negative potential energy)
+    new_momenta_score = assess_momenta(-momenta) # assess new momenta score (negative kinetic energy)
 
     # accept or reject
     alpha = new_model_score - prev_model_score + new_momenta_score - prev_momenta_score
