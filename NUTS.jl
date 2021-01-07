@@ -75,6 +75,22 @@ function select_selection_NUTS(trace)
     return selection
 end
 
+function find_reasonable_epsilon(trace,selection,vals,θ)
+    ϵ = 1 #initialize ϵ
+    r = sample_momenta(length(θ))
+    θ¹,r¹,new_trace = leapfrog(trace,selection,vals,θ,r,ϵ)
+    score_comparison = exp(get_score(new_trace) - get_score(trace))
+    score_indicator = (score_comparison > 0.5) ? 1.0 : 0.0
+    a = 2.0*(score_indicator) - 1.0
+    while score_comparison^a > 2^(-a)
+        ϵ = (2^a)*ϵ
+        θ¹,r¹,new_trace2 = leapfrog(new_trace,selection,vals,θ,r,ϵ)
+        score_comparison = exp(get_score(new_trace2) - get_score(new_trace))
+    end
+    return ϵ
+end
+    
+
 function NUTS(trace, selection::Selection, ϵ, check, observations, M, prev_trace)
     #Get vals structure
     args = get_args(trace)
@@ -92,6 +108,10 @@ function NUTS(trace, selection::Selection, ϵ, check, observations, M, prev_trac
     prev_model_score = get_score(prev_trace)
     prev_momenta_score = assess_momenta(r₀)
         
+    #Initialize ϵ
+    ϵ = find_reasonable_epsilon(trace,selection,vals,θ₀)
+    #println("Epsilon: $ϵ")
+        
     #Loop M times
     for m=1:M
         #Resample Position Variables
@@ -100,7 +120,7 @@ function NUTS(trace, selection::Selection, ϵ, check, observations, M, prev_trac
         params = from_array(vals, θ)
         (new_trace, _, _) = update(new_trace, args, argdiffs, params)
         score = exp(get_score(new_trace) - 0.5(dot(r,r)))
-        println(score)
+        #println(score)
         if score <= 0
             u = 0
         else
