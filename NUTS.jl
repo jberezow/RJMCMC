@@ -1,58 +1,3 @@
-function build_tree(trace,selection,vals,θ,r,u,v,j,ϵ)
-    #Base case - take one leapfrog step in the direction of v
-    if j == 0
-        θ¹,r¹,tree_trace = leapfrog(trace,selection,vals,θ,r,v*ϵ)
-        score = get_score(tree_trace) - 0.5(dot(r¹,r¹))
-        if u ≤ exp(score)
-            C¹ = Set(tuple([θ¹,r¹]))
-        else
-            C¹ = Set()
-        end
-        s¹ = (score > log(u) - Δmax) ? 1 : 0
-        return θ¹,r¹,θ¹,r¹,C¹,s¹
-    #Recursion - build left and right subtrees
-    else
-        θ⁻,r⁻,θ⁺,r⁺,C¹,s¹ = build_tree(trace,selection,vals,θ,r,u,v,j-1,ϵ)
-        if v == -1
-            θ⁻,r⁻,_,_,C²,s² = build_tree(trace,selection,vals,θ⁻,r⁻,u,v,j-1,ϵ)
-        else
-            _,_,θ⁺,r⁺,C²,s² = build_tree(trace,selection,vals,θ⁺,r⁺,u,v,j-1,ϵ)
-        end
-        i¹ = (dot((θ⁺ - θ⁻),r⁻) ≥ 0) ? 1 : 0
-        i² = (dot((θ⁺ - θ⁻),r⁺) ≥ 0) ? 1 : 0
-        s¹ = s¹*s²*i¹*i²
-        C¹ = union(C¹,C²)
-       return θ⁻,r⁻,θ⁺,r⁺,C¹,s¹
-    end
-end;
-
-function leapfrog(trace,selection,vals,θ,r,ϵ)
-    #Prep trace and gradient
-    new_trace = trace
-    args = get_args(trace)
-    argdiffs = map((_) -> NoChange(), args)
-    retval_grad = accepts_output_grad(get_gen_fn(trace)) ? zero(get_retval(trace)) : nothing
-    θtrace = from_array(vals, θ)
-    (new_trace, _, _) = update(new_trace, args, argdiffs, θtrace)
-    (_, values_trie, gradient_trie) = choice_gradients(new_trace, selection, retval_grad)
-    gradient = to_array(gradient_trie, Float64)
-    
-    #LEAPFROG
-    
-    r += (ϵ / 2) * gradient # half step on momenta
-    θ += ϵ .* r # full step on positions
-
-    # get new gradient
-    θnew = from_array(values_trie, θ)
-    (new_trace, _, _) = update(new_trace, args, argdiffs, θnew)
-    (_, _, gradient_trie) = choice_gradients(new_trace, selection, retval_grad)
-    gradient = to_array(gradient_trie, Float64)
-    
-    r += (ϵ / 2) * gradient # half step on momenta
-
-    return θ,r,new_trace
-end
-
 function sample_momenta(n::Int)
     Float64[random(normal, 0, 1) for _=1:n]
 end
@@ -89,9 +34,82 @@ function find_reasonable_epsilon(trace,selection,vals,θ)
     end
     return ϵ
 end
-    
 
-function NUTS(trace, selection::Selection, ϵ, check, observations, M, prev_trace)
+#Tree Building for Efficient NUTS
+function build_tree(trace,selection,vals,θ,r,u,v,j,ϵ,θ⁰,r⁰,prev_trace)
+    #Base case - take one leapfrog step in the direction of v
+    if j == 0
+        θ¹,r¹,tree_trace = leapfrog(trace,selection,vals,θ,r,v*ϵ)
+        prev_score = get_score(prev_trace) - 0.5(dot(r⁰,r⁰))
+        score = get_score(tree_trace) - 0.5(dot(r¹,r¹))
+        if u ≤ exp(score)
+            n¹ = 1
+        else
+            n¹ = 0
+        end
+        s¹ = (score > log(u) - Δmax) ? 1 : 0
+        α¹ = min(1, exp(score-prev_score))
+        return θ¹,r¹,θ¹,r¹,θ¹,n¹,s¹,α¹,1
+    #Recursion - build left and right subtrees
+    else
+        θ⁻,r⁻,θ⁺,r⁺,θ¹,n¹,s¹,α¹,nᵅ¹ = build_tree(trace,selection,vals,θ,r,u,v,j-1,ϵ,θ⁰,r⁰,prev_trace)
+        if s¹ == -1
+            if v == -1
+                θ⁻,r⁻,_,_,θ²,n²,s²,α²,nᵅ² = build_tree(trace,selection,vals,θ⁻,r⁻,u,v,j-1,ϵ,θ⁰,r⁰,prev_trace)
+            else
+                _,_,θ⁺,r⁺,θ²,n²,s²,α²,nᵅ² = build_tree(trace,selection,vals,θ⁺,r⁺,u,v,j-1,ϵ,θ⁰,r⁰,prev_trace)
+            end
+            met_ind = n²/(n¹+n²)
+            if bernoulli(met_ind) == true
+                θ¹ = θ²
+            else
+                θ¹ = θ¹
+            end
+            α¹ = α¹ + α²
+            nᵅ¹ = nᵅ¹ + nᵅ²
+            i¹ = (dot((θ⁺ - θ⁻),r⁻) ≥ 0) ? 1 : 0
+            i² = (dot((θ⁺ - θ⁻),r⁺) ≥ 0) ? 1 : 0
+            s¹ = s²*i¹*i²
+            n¹ = n¹ + n²
+        end
+       return θ⁻,r⁻,θ⁺,r⁺,θ¹,n¹,s¹,α¹,nᵅ
+    end
+end;
+
+function leapfrog(trace,selection,vals,θ,r,ϵ)
+    #Prep trace and gradient
+    new_trace = trace
+    args = get_args(trace)
+    argdiffs = map((_) -> NoChange(), args)
+    retval_grad = accepts_output_grad(get_gen_fn(trace)) ? zero(get_retval(trace)) : nothing
+    θtrace = from_array(vals, θ)
+    (new_trace, _, _) = update(new_trace, args, argdiffs, θtrace)
+    (_, values_trie, gradient_trie) = choice_gradients(new_trace, selection, retval_grad)
+    gradient = to_array(gradient_trie, Float64)
+    
+    #LEAPFROG
+    
+    r += (ϵ / 2) * gradient # half step on momenta
+    θ += ϵ .* r # full step on positions
+
+    # get new gradient
+    θnew = from_array(values_trie, θ)
+    (new_trace, _, _) = update(new_trace, args, argdiffs, θnew)
+    (_, _, gradient_trie) = choice_gradients(new_trace, selection, retval_grad)
+    gradient = to_array(gradient_trie, Float64)
+    
+    r += (ϵ / 2) * gradient # half step on momenta
+
+    return θ,r,new_trace
+end
+
+#Dual averaging constants for finding good ϵ
+γ = 0.05
+t₀ = 10
+κ = 0.75
+δ = 0.65
+
+function NUTS(trace, selection::Selection, ϵ, check, observations, M, Madapt, prev_trace)
     #Get vals structure
     args = get_args(trace)
     retval_grad = accepts_output_grad(get_gen_fn(trace)) ? zero(get_retval(trace)) : nothing
@@ -99,28 +117,28 @@ function NUTS(trace, selection::Selection, ϵ, check, observations, M, prev_trac
     (_, vals, gradient_trie) = choice_gradients(trace, selection, retval_grad)
     
     #Initialize θ, r
-    θ₀ = to_array(vals, Float64)
-    r₀ = sample_momenta(length(θ₀))
-    C_choice = tuple([θ₀, r₀])[1]
+    θ⁰ = to_array(vals, Float64)
+    r⁰ = sample_momenta(length(θ⁰))
+    θ = θ⁰
+    r = r⁰
     new_trace = trace
     
     #Previous scores
     prev_model_score = get_score(prev_trace)
-    prev_momenta_score = assess_momenta(r₀)
+    prev_momenta_score = assess_momenta(r⁰)
         
     #Initialize ϵ
-    ϵ = find_reasonable_epsilon(trace,selection,vals,θ₀)
+    ϵ = find_reasonable_epsilon(trace,selection,vals,θ⁰)
+    μ = log(10*ϵ)
     #println("Epsilon: $ϵ")
         
     #Loop M times
     for m=1:M
         #Resample Position Variables
-        θ = C_choice[1]
-        m == 1 ? (r = C_choice[2]) : (r = sample_momenta(length(θ)))
         params = from_array(vals, θ)
         (new_trace, _, _) = update(new_trace, args, argdiffs, params)
         score = exp(get_score(new_trace) - 0.5(dot(r,r)))
-        #println(score)
+        
         if score <= 0
             u = 0
         else
@@ -128,34 +146,33 @@ function NUTS(trace, selection::Selection, ϵ, check, observations, M, prev_trac
         end
         
         #Initialize
-        θ⁻ = θ
-        θ⁺ = θ
-        r⁻ = r
-        r⁺ = r
-        j = 0
-        C = Set(tuple([θ, r]))
-        s = 1
+        θ¹ = θ; θ⁻ = θ; θ⁺ = θ; r⁻ = r; r⁺ = r; j = 0; s = 1; n = 1
         
         while s == 1
             vⱼ = rand([-1,1])
             if vⱼ == -1
-                θ⁻,r⁻,_,_,C¹,s¹ = build_tree(new_trace,selection,vals,θ⁻,r⁻,u,vⱼ,j,ϵ)
+                θ⁻,r⁻,_,_,θ¹,n¹,s¹ = build_tree(new_trace,selection,vals,θ⁻,r⁻,u,vⱼ,j,ϵ,θ⁰,r⁰,trace)
             else
-                _,_,θ⁺,r⁺,C¹,s¹ = build_tree(new_trace,selection,vals,θ⁺,r⁺,u,vⱼ,j,ϵ)
+                _,_,θ⁺,r⁺,θ¹,n¹,s¹ = build_tree(new_trace,selection,vals,θ⁺,r⁺,u,vⱼ,j,ϵ,θ⁰,r⁰,trace)
             end
             if s¹ == 1
-                C = union(C,C¹)
+                met_ind = (n¹/n > 1.0) ? 1.0 : n¹/n
+                if bernoulli(met_ind) == true
+                    θ = θ¹
+                else
+                    θ = θ
+                end
             end
+            n = n + n¹
             i¹ = (dot((θ⁺ - θ⁻),r⁻) ≥ 0) ? 1 : 0
             i² = (dot((θ⁺ - θ⁻),r⁺) ≥ 0) ? 1 : 0
             s = s¹*i¹*i²
             j += 1
         end
-        C_choice = rand(unique(C))
     end
     
-    θ = from_array(vals, C_choice[1])
-    momenta = C_choice[2]
+    θ = from_array(vals, θ)
+    momenta = r
     (new_trace, _, _) = update(trace, args, argdiffs, θ)
     
     new_model_score = get_score(new_trace) # assess new model score (negative potential energy)
