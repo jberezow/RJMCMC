@@ -117,7 +117,7 @@ t₀ = 10
 κ = 0.75
 δ = 0.65
 
-function NUTS(trace, selection::Selection, ϵ, check, observations, M, Madapt, prev_trace)
+function NUTS(trace, selection::Selection, check, observations, M, Madapt, prev_trace)
     #Get vals structure
     args = get_args(trace)
     retval_grad = accepts_output_grad(get_gen_fn(trace)) ? zero(get_retval(trace)) : nothing
@@ -144,6 +144,7 @@ function NUTS(trace, selection::Selection, ϵ, check, observations, M, Madapt, p
     #Loop M times
     for m=1:M
         #Resample momentum Variables
+        #println("Epsilon for iter $m: $ϵ⁰")
         m == 1 ? (r = r⁰) : (r = sample_momenta(length(θ)))
         params = from_array(vals, θ)
         (new_trace, _, _) = update(new_trace, args, argdiffs, params)
@@ -181,9 +182,10 @@ function NUTS(trace, selection::Selection, ϵ, check, observations, M, Madapt, p
         end
             
         if m ≤ Madapt
-            H⁰ = ((1-(1/(m+t₀)))*H⁰)+((1/(m+t₀))*(δ-(α/nᵅ)))
-            ϵ⁰ = exp(μ - (√m)/γ * H⁰)
-            ϵ¹ = exp(m^(-κ)*log(ϵ⁰) + (1-m^(-κ))*log(ϵ¹))
+            #H⁰ = ((1-(1/(m+t₀)))*H⁰)+((1/(m+t₀))*(δ-(α/nᵅ)))
+            #ϵ⁰ = exp(μ - (√m)/γ * H⁰)
+            #ϵ¹ = exp(m^(-κ)*log(ϵ⁰) + (1-m^(-κ))*log(ϵ¹))
+            ϵ⁰ = ϵ⁰
         else
             ϵ⁰ = ϵ⁰
         end
