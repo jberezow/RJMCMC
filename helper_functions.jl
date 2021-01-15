@@ -95,3 +95,16 @@ function select_selection(trace)
     end
     return selection
 end
+
+function select_selection_fixed(trace)
+    l = trace[:l]
+    selection = select()
+    for i=1:l+1
+        push!(selection, (:W,i))
+        push!(selection, (:b,i))
+    end
+    push!(selection, (:τ₁))
+    push!(selection, (:τ₂))
+    push!(selection, (:τ₃))
+    return selection
+end

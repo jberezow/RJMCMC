@@ -61,13 +61,14 @@ function build_tree(trace,selection,vals,θ,r,u,v,j,ϵ,θ⁰,r⁰)
     #Recursion - build left and right subtrees
     else
         θ⁻,r⁻,θ⁺,r⁺,θ¹,n¹,s¹,α¹,nᵅ¹ = build_tree(trace,selection,vals,θ,r,u,v,j-1,ϵ,θ⁰,r⁰)
-        if s¹ == -1
+        if s¹ == 1
             if v == -1
                 θ⁻,r⁻,_,_,θ²,n²,s²,α²,nᵅ² = build_tree(trace,selection,vals,θ⁻,r⁻,u,v,j-1,ϵ,θ⁰,r⁰)
             else
                 _,_,θ⁺,r⁺,θ²,n²,s²,α²,nᵅ² = build_tree(trace,selection,vals,θ⁺,r⁺,u,v,j-1,ϵ,θ⁰,r⁰)
             end
             met_ind = n²/(n¹+n²)
+            #println("Acceptance prob: $met_ind")
             if bernoulli(met_ind) == true
                 θ¹ = θ²
             else
@@ -157,7 +158,7 @@ function NUTS(trace, selection::Selection, check, observations, M, Madapt, prev_
         end
         
         #Initialize
-        θ¹ = θ; θ⁻ = θ; θ⁺ = θ; r⁻ = r; r⁺ = r; j = 0; s = 1; n = 1; θᵐ = θ; nᵅ = 1
+        θ¹ = θ; θ⁻ = θ; θ⁺ = θ; r⁻ = r; r⁺ = r; j = 0; s = 1; n = 1; nᵅ = 1
         
         while s == 1
             vⱼ = rand([-1,1])
@@ -182,14 +183,14 @@ function NUTS(trace, selection::Selection, check, observations, M, Madapt, prev_
         end
             
         if m ≤ Madapt
-            #H⁰ = ((1-(1/(m+t₀)))*H⁰)+((1/(m+t₀))*(δ-(α/nᵅ)))
-            #ϵ⁰ = exp(μ - (√m)/γ * H⁰)
-            #ϵ¹ = exp(m^(-κ)*log(ϵ⁰) + (1-m^(-κ))*log(ϵ¹))
-            ϵ⁰ = ϵ⁰
+            H⁰ = ((1-(1/(m+t₀)))*H⁰)+((1/(m+t₀))*(δ-(α/nᵅ)))
+            ϵ⁰ = exp(μ - (√m)/γ * H⁰)
+            ϵ¹ = exp(m^(-κ)*log(ϵ⁰) + (1-m^(-κ))*log(ϵ¹))
+            #ϵ⁰ = ϵ⁰
         else
             ϵ⁰ = ϵ⁰
         end
-        #println("Epsilon: $ϵ⁰")
+        
             
     end
     
