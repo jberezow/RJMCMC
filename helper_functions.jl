@@ -13,6 +13,10 @@ function data_labeller(y::Array{Float64})
     return labels
 end
 
+function mse_regression(y_pred::Array{Float64},y_real::Array{Float64})
+    sum([(y_pred[i] - y_real[i])^2 for i=1:length(y)])
+end
+
 function trace_acc(trace)
     pred_y = G(x, trace)
     pred_labels = data_labeller(pred_y)
@@ -83,6 +87,7 @@ function select_hyperparameters(trace, obs)
     obs[:τ₁] = new_trace[:τ₁]
     obs[:τ₂] = new_trace[:τ₂]
     obs[:τ₃] = new_trace[:τ₃]
+    obs[:τᵧ] = new_trace[:τᵧ]
     return new_trace, obs
 end
 

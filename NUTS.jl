@@ -145,7 +145,7 @@ function NUTS(trace, selection::Selection, check, observations, M, Madapt, prev_
     #Loop M times
     for m=1:M
         #Resample momentum Variables
-        #println("Epsilon for iter $m: $ϵ⁰")
+        println("Epsilon for iter $m: $ϵ⁰")
         m == 1 ? (r = r⁰) : (r = sample_momenta(length(θ)))
         params = from_array(vals, θ)
         (new_trace, _, _) = update(new_trace, args, argdiffs, params)
