@@ -38,11 +38,11 @@ function layer_unpacker(i,l,k)
 end
 
 #Generate XOR Data
-function real_data_classifier(N::Int, modes::Int, σ::Float64)
-    μ₁ = [-0.5, -0.5]
-    μ₂ = [-0.5, 0.5]
-    μ₃ = [0.5, 0.5]
-    μ₄ = [0.5, -0.5]
+function real_data_classifier(N::Int, modes::Int, bound::Float64, σ::Float64)
+    μ₁ = [-bound, -bound]
+    μ₂ = [-bound, bound]
+    μ₃ = [bound, bound]
+    μ₄ = [bound, -bound]
     #μ₅ = [1.25, 1.25]
     #μ₆ = [1.25, 1.75]
     #μ₇ = [1.75, 1.75]
