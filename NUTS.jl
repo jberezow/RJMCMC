@@ -145,7 +145,7 @@ function NUTS(trace, selection::Selection, check, observations, M, Madapt, prev_
     #Loop M times
     for m=1:M
         #Resample momentum Variables
-        println("Epsilon for iter $m: $ϵ⁰")
+        #println("Epsilon for iter $m: $ϵ⁰")
         m == 1 ? (r = r⁰) : (r = sample_momenta(length(θ)))
         params = from_array(vals, θ)
         (new_trace, _, _) = update(new_trace, args, argdiffs, params)
@@ -158,14 +158,18 @@ function NUTS(trace, selection::Selection, check, observations, M, Madapt, prev_
         end
         
         #Initialize
-        θ¹ = θ; θ⁻ = θ; θ⁺ = θ; r⁻ = r; r⁺ = r; j = 0; s = 1; n = 1; nᵅ = 1
+        θ¹ = θ; θ⁻ = θ; θ⁺ = θ; r⁻ = r; r⁺ = r; j = 0; s = 1; n = 1; nᵅ = 0; α = 0
         
         while s == 1
             vⱼ = rand([-1,1])
             if vⱼ == -1
                 θ⁻,r⁻,_,_,θ¹,n¹,s¹,α,nᵅ = build_tree(new_trace,selection,vals,θ⁻,r⁻,u,vⱼ,j,ϵ⁰,θ,r)
+                #println("Alpha: $α")
+                #println("N Alpha: $nᵅ")
             else
                 _,_,θ⁺,r⁺,θ¹,n¹,s¹,α,nᵅ = build_tree(new_trace,selection,vals,θ⁺,r⁺,u,vⱼ,j,ϵ⁰,θ,r)
+                #println("Alpha: $α")
+                #println("N Alpha: $nᵅ")
             end
             if s¹ == 1
                 met_ind = (n¹/n > 1.0) ? 1.0 : n¹/n

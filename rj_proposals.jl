@@ -13,9 +13,9 @@ function obs_maker(trace)
         obs_new[:τᵧ] = trace[:τᵧ]
     end
     obs_new[:l] = trace[:l]
-    obs_new[:τ₁] = trace[:τ₁]
-    obs_new[:τ₂] = trace[:τ₂]
-    obs_new[:τ₃] = trace[:τ₃]
+    #obs_new[:τ₁] = trace[:τ₁]
+    #obs_new[:τ₂] = trace[:τ₂]
+    #obs_new[:τ₃] = trace[:τ₃]
     return obs_new
 end
 
@@ -74,9 +74,9 @@ end
     output = trace[:l] + 1
     
     #Hyperparameters for new proposals
-    σ₁ = sqrt(1/obs_new[:τ₁])
-    σ₂ = sqrt(1/obs_new[:τ₂])
-    σ₃ = sqrt(1/obs_new[:τ₃])
+    #σ₁ = sqrt(1/obs_new[:τ₁])
+    #σ₂ = sqrt(1/obs_new[:τ₂])
+    #σ₃ = sqrt(1/obs_new[:τ₃])
     
     #Q vector is new parameters
     

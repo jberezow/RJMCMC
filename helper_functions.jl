@@ -87,7 +87,9 @@ function select_hyperparameters(trace, obs)
     obs[:τ₁] = new_trace[:τ₁]
     obs[:τ₂] = new_trace[:τ₂]
     obs[:τ₃] = new_trace[:τ₃]
-    obs[:τᵧ] = new_trace[:τᵧ]
+    if network == "interpolator"
+        obs[:τᵧ] = new_trace[:τᵧ]
+    end
     return new_trace, obs
 end
 

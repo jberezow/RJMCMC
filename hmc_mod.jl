@@ -23,9 +23,9 @@ Hamilton's equations are numerically integrated using leapfrog integration with 
 Neal, Radford M. (2011), "MCMC Using Hamiltonian Dynamics", Handbook of Markov Chain Monte Carlo, pp. 113-162. URL: http://www.mcmchandbook.net/HandbookChapter5.pdf
 """
 function hmc_mod(
-        trace::U, selection::Selection; L=10, eps=0.1,
+        trace::U, prev_trace::U, selection::Selection; L=10, eps=0.1,
         check=false, observations=EmptyChoiceMap()) where {T,U}
-    prev_model_score = get_score(trace)
+    prev_model_score = get_score(prev_trace)
     args = get_args(trace)
     retval_grad = accepts_output_grad(get_gen_fn(trace)) ? zero(get_retval(trace)) : nothing
     argdiffs = map((_) -> NoChange(), args)
