@@ -34,16 +34,16 @@ function NUTS(trace, selection, δ, M, Madapt, verbose=true)
   end
 
   function find_reasonable_ϵ(θ)
-    ϵ, r = 1, randn(length(θ))
+    ϵ, r = 1, Float64[random(normal, 0, 1.0) for _=1:length(θ)]#randn(length(θ))
     θ′, r′ = leapfrog(θ, r, ϵ)
 
     # This trick prevents the log-joint or its graident from being infinte
     # Ref: code start from Line 111 in https://github.com/mfouesneau/NUTS/blob/master/nuts.py
     # QUES: will this lead to some bias of the sampler?
-    #while isinf(L(θ′)) || any(isinf(∇L(θ′)))
-      #ϵ = ϵ * 0.5
-      #θ′, r′ = leapfrog(θ, r, ϵ)
-    #end
+    while isinf(L(θ′)) || any(isinf.(∇L(θ′)))
+      ϵ = ϵ * 0.5
+      θ′, r′ = leapfrog(θ, r, ϵ)
+    end
 
     a = 2 * (exp(L(θ′) - 0.5 * dot(r′, r′)) / exp(L(θ) - 0.5 * dot(r, r)) > 0.5) - 1
     while (exp(L(θ′) - 0.5 * dot(r′, r′)) / exp(L(θ) - 0.5 * dot(r, r)))^float(a) > 2^float(-a)
@@ -62,6 +62,7 @@ function NUTS(trace, selection, δ, M, Madapt, verbose=true)
       while L(θ′) == -Inf || ∇L(θ′) == -Inf
         ϵ = ϵ * 0.5
         θ′, r′ = leapfrog(θ, r, v * ϵ)
+        println("Go")
       end
       n′ = u <= exp(L(θ′) - 0.5 * dot(r′, r′))
       s′ = u < exp(Δ_max + L(θ′) - 0.5 * dot(r′, r′))
@@ -100,7 +101,8 @@ function NUTS(trace, selection, δ, M, Madapt, verbose=true)
 
   for m = 1:M
     if verbose print('.') end
-    r0 = randn(length(θ0))
+    r0 = Float64[random(normal, 0, 1.0) for _=1:length(θ0)]
+    #r0 = randn(length(θ0))
     u = rand() * exp(L(θs[m]) - 0.5 * dot(r0, r0)) # Note: θ^{m-1} in the paper corresponds to
                                                    #       `θs[m]` in the code
     θm, θp, rm, rp, j, θs[m + 1], n, s = θs[m], θs[m], r0, r0, 0, θs[m], 1, 1
@@ -112,6 +114,7 @@ function NUTS(trace, selection, δ, M, Madapt, verbose=true)
       else
         _, _, θp, rp, θ′, n′, s′, α, n_α = build_tree(θp, rp, u, v, j, ϵ, θs[m], r0)
       end
+
       if s′ == 1
         if rand() < min(1, n′ / n)
           θs[m + 1] = θ′
@@ -137,6 +140,7 @@ function NUTS(trace, selection, δ, M, Madapt, verbose=true)
   traces = []
   for i = 1:length(θs)
     θ = from_array(vals, θs[i])
+    #println(θ)
     (trace, _, _) = update(trace, args, argdiffs, θ)
     push!(traces, trace)
   end
