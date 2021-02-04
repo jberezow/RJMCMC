@@ -14,7 +14,13 @@ function data_labeller(y::Array{Float64})
 end
 
 function mse_regression(y_pred::Array{Float64},y_real::Array{Float64})
-    sum([(y_pred[i] - y_real[i])^2 for i=1:length(y)])
+    sum((y_pred .- y_real).^2)/length(y_real)
+end
+
+function mse_scaled(y_pred::Array{Float64},y_real::Array{Float64})
+    y_pred = StatsBase.reconstruct(dy,y_pred)
+    y_real = StatsBase.reconstruct(dy,y_real)
+    √(sum((y_pred .- y_real).^2)/length(y_real))
 end
 
 function trace_acc(trace)
@@ -115,3 +121,40 @@ function select_selection_fixed(trace)
     push!(selection, (:τ₃))
     return selection
 end
+
+##################
+#Likelihood Tests#
+##################
+
+function likelihood_regression(iters)
+    obs = obs_master;
+    scores = []
+    mses = []
+    ls = []
+    best_traces = []
+    (best_trace,) = generate(interpolator, (x,), obs)
+    best_score = get_score(best_trace)
+    best_pred_y = transpose(G(x, best_trace))[:,1]
+    best_mse = mse_scaled(best_pred_y, y)
+    
+    (trace,) = generate(interpolator, (x,), obs)
+    score = get_score(trace)
+    pred_y = transpose(G(x, trace))[:,1]
+    mse = mse_scaled(pred_y, y)
+    
+    for i=1:iters
+        (trace,) = generate(interpolator, (x,), obs)
+        score = get_score(trace)
+        pred_y = transpose(G(x, trace))[:,1]
+        mse = mse_scaled(pred_y, y)
+        push!(scores,score)
+        push!(mses,mse)
+        if mse < best_mse
+            best_mse = mse
+            best_score = score
+            best_trace = trace
+            best_pred_y = pred_y
+        end
+    end
+    return(best_trace, scores, mses)
+end;

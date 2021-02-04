@@ -41,6 +41,7 @@ function NUTS(trace, selection, δ, M, Madapt, verbose=true)
     # Ref: code start from Line 111 in https://github.com/mfouesneau/NUTS/blob/master/nuts.py
     # QUES: will this lead to some bias of the sampler?
     while isinf(L(θ′)) || any(isinf.(∇L(θ′)))
+      println("Inf warning")
       ϵ = ϵ * 0.5
       θ′, r′ = leapfrog(θ, r, ϵ)
     end
@@ -62,7 +63,7 @@ function NUTS(trace, selection, δ, M, Madapt, verbose=true)
       while L(θ′) == -Inf || ∇L(θ′) == -Inf
         ϵ = ϵ * 0.5
         θ′, r′ = leapfrog(θ, r, v * ϵ)
-        println("Go")
+        println("Inf warning")
       end
       n′ = u <= exp(L(θ′) - 0.5 * dot(r′, r′))
       s′ = u < exp(Δ_max + L(θ′) - 0.5 * dot(r′, r′))
