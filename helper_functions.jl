@@ -158,3 +158,69 @@ function likelihood_regression(iters)
     end
     return(best_trace, scores, mses)
 end;
+
+function likelihood_regression_unscaled(iters)
+    obs = obs_master;
+    scores = []
+    mses = []
+    ls = []
+    best_traces = []
+    (best_trace,) = generate(interpolator, (x,), obs)
+    best_score = get_score(best_trace)
+    best_pred_y = transpose(G(x, best_trace))[:,1]
+    best_mse = mse_regression(best_pred_y, y)
+    
+    (trace,) = generate(interpolator, (x,), obs)
+    score = get_score(trace)
+    pred_y = transpose(G(x, trace))[:,1]
+    mse = mse_regression(pred_y, y)
+    
+    for i=1:iters
+        (trace,) = generate(interpolator, (x,), obs)
+        score = get_score(trace)
+        pred_y = transpose(G(x, trace))[:,1]
+        mse = mse_regression(pred_y, y)
+        push!(scores,score)
+        push!(mses,mse)
+        if mse < best_mse
+            best_mse = mse
+            best_score = score
+            best_trace = trace
+            best_pred_y = pred_y
+        end
+    end
+    return(best_trace, scores, mses)
+end;
+
+function likelihood_regression_euclidean(iters)
+    obs = obs_master;
+    scores = []
+    mses = []
+    ls = []
+    best_traces = []
+    (best_trace,) = generate(interpolator, (x,), obs)
+    best_score = get_score(best_trace)
+    best_pred_y = transpose(G(x, best_trace))[:,1]
+    best_mse = euclidean(best_pred_y, y)
+    
+    (trace,) = generate(interpolator, (x,), obs)
+    score = get_score(trace)
+    pred_y = transpose(G(x, trace))[:,1]
+    mse = euclidean(pred_y, y)
+    
+    for i=1:iters
+        (trace,) = generate(interpolator, (x,), obs)
+        score = get_score(trace)
+        pred_y = transpose(G(x, trace))[:,1]
+        mse = euclidean(pred_y, y)
+        push!(scores,score)
+        push!(mses,mse)
+        if mse < best_mse
+            best_mse = mse
+            best_score = score
+            best_trace = trace
+            best_pred_y = pred_y
+        end
+    end
+    return(best_trace, scores, mses)
+end;
