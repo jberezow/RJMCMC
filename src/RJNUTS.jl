@@ -107,7 +107,7 @@ function node_parameter(trace)
     end
 end
 
-function RJNUTS(trace, chain=1)
+function RJNUTS(trace, iters=10, chain=1)
     traces = []
     scores = []
     across_acceptance = []
@@ -115,7 +115,7 @@ function RJNUTS(trace, chain=1)
     hyper1_acceptance = []
     hyper2_acceptance = []
     
-    for i=1:ITERS
+    for i=1:iters
         (trace, accepted) = node_parameter(trace)
         push!(across_acceptance, accepted)
         (trace, accepted)  = propose_hyperparameters(trace)
@@ -129,7 +129,7 @@ function RJNUTS(trace, chain=1)
         push!(traces, trace)
         #println("$i : $(get_score(trace))")
         
-        if i%100 == 0
+        if i%5 == 0
             a_acc = 100*(sum(across_acceptance)/length(across_acceptance))
             w_acc = 100*(sum(within_acceptance)/length(within_acceptance))
             h_acc = 100*(sum(hyper1_acceptance)/length(hyper1_acceptance))

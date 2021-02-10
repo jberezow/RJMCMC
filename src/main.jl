@@ -1,4 +1,6 @@
 #Library calls
+push!(LOAD_PATH, "/home/jberez/Projects/RJMCMC/src")
+println(LOAD_PATH)
 using Gen
 using PyPlot
 using Distributions
@@ -7,10 +9,12 @@ using Flux
 using Random
 using Distances
 using JLD
+using Serialization
 using StatsBase
+using BNN
 
 include("NUTS.jl")
-include("BNN.jl")
+#include("BNN.jl")
 include("RJNUTS.jl")
 include("utils.jl")
 include("rj_proposals_layers.jl")
@@ -22,7 +26,8 @@ println("Packages Loaded")
 #Hyperparameters
 #---------------
 
-ITERS = 10000
+filename = "Run1.jld"
+ITERS = 11
 CHAINS = 1
 
 #NUTS
@@ -56,4 +61,6 @@ obs = obs_master;
 println("Beginning Inference")
 println("-------------------")
 (trace,) = generate(interpolator, (x,), obs)
-traces, scores = RJNUTS(trace)
+traces, scores = RJNUTS(trace, ITERS)
+
+serialize(filename, traces)

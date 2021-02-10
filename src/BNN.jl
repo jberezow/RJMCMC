@@ -1,3 +1,17 @@
+module BNN
+using Gen
+using Distributions
+using LinearAlgebra
+using Flux
+using Random
+using Distances
+using JLD
+using Serialization
+using StatsBase
+include("utils.jl")
+
+export interpolator
+
 #-------------------
 #Bayesian Neural Net
 #-------------------
@@ -8,7 +22,7 @@ function G(x, trace)
     layers = trace[:l]
     ks = [trace[(:k,i)] for i=1:layers]
     for i=1:layers
-        in_dim, out_dim = layer_unpacker(i, layers, ks)
+        in_dim, out_dim = layer_unpacker(x, i, layers, ks)
         W = reshape(trace[(:W,i)], out_dim, in_dim)
         b = reshape(trace[(:b,i)], trace[(:k,i)])
         nn = Dense(W, b, activation)
@@ -25,16 +39,24 @@ end;
 #BNN Probabilistic Model
 @gen function interpolator(x)
     
+    #Get Dimension
+    d = length(x[:,1])
+    
     #Create a blank choicemap
     obs = choicemap()::ChoiceMap
     
     #Draw number of layers
+    l_range = 4 #Maximum number of layers in the network
+    l_list = [Int(i) for i in 1:l_range]
     l ~ categorical([1/length(l_list) for i=1:length(l_list)])
     l_real = l
     obs[:l] = l
     
     #Create individual weight and bias vectors
     #Loop through hidden layers
+    k_real = 8 #Number of hidden nodes per layer
+    k_vector = [0.0 for i=1:k_real]
+    k_vector[k_real] = 1.0
     k = [Int(0) for i=1:l+1]
     for i=1:l
         k[i] = @trace(categorical(k_vector), (:k,i))
@@ -111,4 +133,6 @@ end;
 
     return scores
     
+end;
+
 end;

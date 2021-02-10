@@ -32,7 +32,8 @@ end
 
 mₖ(k) = k*4 + 1;
 
-function layer_unpacker(i,l,k)
+function layer_unpacker(x,i,l,k)
+    d = length(x[:,1])
     if i == 1
         input_dim = d
         output_dim = k[i]
