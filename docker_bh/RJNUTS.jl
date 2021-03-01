@@ -76,7 +76,7 @@ function node_parameter(trace)
     init_trace = trace
     
     #################################################RJNUTS#################################################
-    #HMC Step 1
+    #NUTS Step 1
     trace_tilde = trace
 
     (trace_tilde,) = propose_hyperparameters(trace_tilde)
@@ -86,7 +86,7 @@ function node_parameter(trace)
     #Reversible Jump Step
     (trace_prime, q_weight) = layer_change(trace_tilde)
     
-    #HMC Step 2
+    #NUTS Step 2
     trace_star = trace_prime
 
     (trace_star,) = nuts_parameters(trace_star)

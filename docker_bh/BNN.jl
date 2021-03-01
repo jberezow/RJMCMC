@@ -67,7 +67,7 @@ end;
     
     #Standard Deviations
     τ₁ ~ gamma(100,0.01) #(100,0.01) Hidden weights and biases
-    τ₂ ~ gamma(100*k[1],0.01) #(100*k,0.01) Output weights and biases
+    τ₂ ~ gamma(100,0.01) #(100*k,0.01) Output weights and biases
     τᵧ ~ gamma(100, 0.5) #(100,0.5) Regression noise parameter
     σ₁ = 1/τ₁
     σ₂ = 1/τ₂

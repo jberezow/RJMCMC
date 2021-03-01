@@ -1,7 +1,9 @@
 #---------------------------
 #Load Boston Housing Dataset
 #---------------------------
+#data = load("/app/boston.jld")["boston"]
 data = load("boston.jld")["boston"]
+
 
 # Generating test/training sets:
 nrow, ncol = size(data)

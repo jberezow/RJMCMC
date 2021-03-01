@@ -8,12 +8,25 @@ metadata_packages = [
     "Distances",
     "Flux",
     "JLD",
-    "PyPlot",
     "Serialization",
     "StatsBase"]
 
-Pkg.update()
+#Pkg.update()
 
 for package=metadata_packages
     Pkg.add(package)
 end
+
+app_dir = "/app"
+push!(LOAD_PATH, app_dir)
+
+using Gen
+using LinearAlgebra
+using Random
+using Distributions
+using Distances
+using Flux
+using JLD
+using Serialization
+using StatsBase
+using BNN
