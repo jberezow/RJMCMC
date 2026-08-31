@@ -5,6 +5,7 @@ using Distributions
 using Flux
 using LinearAlgebra
 using Random
+using Serialization
 
 include("models/width_bnn.jl")
 using .BNN: G, classifier, softmax_
@@ -32,10 +33,16 @@ include("proposals/node_birth_death.jl")
 include("inference/width_rjnuts.jl")
 
 export XORData,
+       XORResult,
        generate_xor_data,
        prepare_xor!,
        initial_xor_trace,
        run_xor,
+       save_xor_result,
+       load_xor_result,
+       predict_probabilities,
+       classification_accuracy,
+       posterior_accuracy,
        NUTS,
        RJNUTS,
        RJNUTS_parallel

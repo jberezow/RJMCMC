@@ -129,7 +129,7 @@ function RJNUTS_parallel(trace, chain, ci)
     (trace, a_acc) = node_parameter(trace)
     (trace, w_acc) = nuts_parameters(trace)
     current_k = trace[(:k,1)]
-    println("Chain $chain Iter $ci : $(get_score(trace)), Layer Count: $current_k")
+    println("Chain $chain Iter $ci : $(get_score(trace)), Hidden Width: $current_k")
 
     return trace, a_acc, w_acc
 end

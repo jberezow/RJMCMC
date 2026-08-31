@@ -20,6 +20,20 @@ and iteration count. The current runner intentionally executes one chain; the
 `chains = 16` values in the configuration files record the original HPC runs
 and are not yet consumed by the runner.
 
+The runner saves its trace and acceptance information beneath `results/xor/`.
+Generate the analysis used by the thesis-style workflow with:
+
+```sh
+julia --project=. scripts/analyze_xor.jl \
+  --input=results/xor/xor-low-noise-seed-1.jls \
+  --burn-in=0
+```
+
+The analysis produces a text summary, a per-iteration CSV file, and SVG figures
+for the log posterior, test accuracy, hidden-width histogram, and
+posterior-averaged classification surface. Generated results are ignored by
+Git.
+
 Two historical configurations are retained:
 
 - `low-noise.toml`: diagonal mode covariance `0.015`

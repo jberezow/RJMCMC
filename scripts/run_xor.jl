@@ -21,6 +21,14 @@ samples_per_mode = argument(
 variance = argument("variance", Float64(config["mode_variance"]), value -> parse(Float64, value))
 seed = argument("seed", 1, value -> parse(Int, value))
 initial_width = argument("initial-width", 1, value -> parse(Int, value))
+default_output = normpath(joinpath(
+    @__DIR__,
+    "..",
+    "results",
+    "xor",
+    "$(replace(lowercase(config["name"]), r"[^a-z0-9]+" => "-"))-seed-$seed.jls",
+))
+output_path = argument("output", default_output)
 
 result = run_xor(
     iterations=iterations,
@@ -33,8 +41,12 @@ result = run_xor(
     nuts_samples=Int(config["nuts_samples"]),
     nuts_adaptation=Int(config["nuts_adaptation"]),
 )
+save_xor_result(output_path, result)
 
 println("Configuration: $(config["name"]) ($config_path)")
 println("Completed $(length(result.traces)) XOR iterations")
 println("Final log score: $(last(result.scores))")
 println("Final hidden width: $(last(result.traces)[(:k, 1)])")
+println("Across-dimension acceptance: $(100 * sum(result.across_acceptance) / length(result.across_acceptance))%")
+println("Within-dimension acceptance: $(100 * sum(result.within_acceptance) / length(result.within_acceptance))%")
+println("Saved result: $output_path")

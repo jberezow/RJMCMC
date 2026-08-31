@@ -29,4 +29,20 @@ end
     @test length(result.scores) == 1
     @test isfinite(only(result.scores))
     @test 1 <= only(result.traces)[(:k, 1)] <= 16
+    @test length(result.across_acceptance) == 1
+    @test length(result.within_acceptance) == 1
+    @test 0 <= classification_accuracy(
+        only(result.traces),
+        result.data.x_test,
+        result.data.y_test,
+    ) <= 1
+
+    mktempdir() do directory
+        path = joinpath(directory, "xor-result.jls")
+        save_xor_result(path, result)
+        restored = load_xor_result(path)
+        @test restored.scores == result.scores
+        @test restored.widths == result.widths
+        @test restored.settings == result.settings
+    end
 end
