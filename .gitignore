@@ -1,2 +1,7 @@
 *.pdf
 .ipynb_checkpoints/
+*.jld
+*.bson
+*.cov
+*.mem
+results/

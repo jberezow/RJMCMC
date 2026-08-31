@@ -1,0 +1,10 @@
+name = "XOR noisy"
+samples_per_mode = 50
+mode_variance = 0.1
+mode_bound = 0.5
+maximum_width = 16
+iterations = 1000
+chains = 16
+target_acceptance = 0.65
+nuts_samples = 4
+nuts_adaptation = 1
