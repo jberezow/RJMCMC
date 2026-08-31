@@ -5,3 +5,5 @@
 *.cov
 *.mem
 results/
+/home/
+/runs/
