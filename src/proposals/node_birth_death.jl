@@ -85,7 +85,7 @@ end
     end
         
     #Update Trace and Return Trace and Weights
-    (new_trace,) = generate(classifier, (xt,), obs_new)
+    (new_trace,) = generate(classifier, args, obs_new)
     node_penalty = log(1/new_k)
     q = -q_score + node_penalty
         
@@ -155,7 +155,7 @@ end
     end
         
     #Update Trace and Return Trace and Weights
-    (new_trace,) = generate(classifier, (xt,), obs_new)
+    (new_trace,) = generate(classifier, args, obs_new)
     node_penalty = log(previous_k)
     q = -q_score + node_penalty
     q = q_score

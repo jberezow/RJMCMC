@@ -2,8 +2,12 @@
 
 These configurations record the four variable-width classification experiments
 from the thesis. OptDigits loading and runner support have not yet been migrated;
-these files cannot be used with `scripts/run_xor.jl`. The current width model
-still fixes two output classes, a maximum width of 16, and softmax scaling of 0.5.
+these files cannot be used with `scripts/run_xor.jl`. The shared width model
+accepts `(x, classes, maximum_width, softmax_scale)` as Gen arguments, with
+XOR defaults `(x, 2, 16, 0.5)`. Here `x` stores one observation per column.
+Predictions and node proposals retain the settings carried by each trace.
+The sampler still requires its ambient data and width bounds to be installed
+consistently; a complete OptDigits setup is pending.
 
 | Configuration | Historical directory | Classes | Maximum width | Softmax scale |
 |---|---|---:|---:|---:|
@@ -61,7 +65,7 @@ The loader has several details to preserve when extracting it:
   rows from the test selection. The source therefore does not guarantee
   disjoint samples, despite the thesis prose referring to train/test datasets.
 
-The next implementation step is to parameterize the shared width model and
-extract the loader with these behaviors intact. Dataset provenance and the
-saved arrays still need inspection before choosing a distribution method or
+The next implementation step is to extract the loader with these behaviors
+intact. Dataset provenance and the saved arrays still need inspection before
+choosing a distribution method or
 claiming reproduction of the reported results.

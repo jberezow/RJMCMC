@@ -75,6 +75,7 @@ function prepare_xor!(
     nuts_adaptation::Int=1,
     divergence_threshold::Real=1,
 )
+    maximum_width >= 2 || throw(ArgumentError("RJNUTS requires at least two possible widths"))
     global xt = transpose(data.x_train)
     global y = data.y_train
     global k_list = collect(1:maximum_width)
@@ -99,7 +100,7 @@ function initial_xor_trace(hidden_width::Int=1)
         observations[(:y, index)] = y[index]
     end
     observations[(:k, 1)] = hidden_width
-    (trace,) = generate(classifier, (xt,), observations)
+    (trace,) = generate(classifier, (xt, 2, last(k_list), 0.5), observations)
     return trace
 end
 

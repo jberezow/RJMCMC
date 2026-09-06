@@ -1,3 +1,5 @@
+# Extracted from OptDigits/dockerxor/BNN.jl; the OptDigits variants at
+# ff0b6e3f8ddb15326bd8ddd8f65aecf4b264954e supply the class, width, and scale settings.
 module BNN
 using Gen
 using Distributions
@@ -21,8 +23,8 @@ function layer_unpacker(i,l,k,d)
 end
 
 #New Softmax
-function softmax_(arr::AbstractArray)
-    ex = mapslices(x -> exp.(0.5*x),arr,dims=1) #0.5 for OptDigits
+function softmax_(arr::AbstractArray, scale=0.5)
+    ex = mapslices(x -> exp.(scale*x),arr,dims=1)
     rows, cols = size(arr)
     val = similar(ex)
     for i in 1:cols
@@ -35,12 +37,19 @@ function softmax_(arr::AbstractArray)
 end;
 
 #Bayesian Neural Net
-function G(x, trace)
+# Old serialized XOR traces have only the input argument.
+function G(x, trace::Gen.Trace)
+    args = get_args(trace)
+    scale = length(args) >= 4 ? args[4] : 0.5
+    return G(x, get_choices(trace), scale)
+end
+
+function G(x, trace, scale=0.5)
     activation = tanh
     layers = trace[:l]
     ks = [trace[(:k,i)] for i=1:layers]
     
-    c = 2
+    c = trace[(:k,layers+1)]
     d = length(x[:,1])
     
     for i=1:layers
@@ -57,15 +66,20 @@ function G(x, trace)
     nn_out = Dense(Wₒ, bₒ)
     x = nn_out(x)
     
-    return softmax_(x)
+    return softmax_(x, scale)
 end;
 
 #-------------------
 #Probabilistic Model
 #-------------------
-@gen function classifier(x)
-    
-    c = 2
+# Defaults reproduce XOR. Settings are trace arguments, not mutable model globals.
+@gen function classifier(x, classes=2, maximum_width=16, softmax_scale=0.5)
+    classes >= 2 || throw(ArgumentError("classes must be at least 2"))
+    maximum_width >= 1 || throw(ArgumentError("maximum_width must be positive"))
+    isfinite(softmax_scale) && softmax_scale > 0 ||
+        throw(ArgumentError("softmax_scale must be finite and positive"))
+
+    c = classes
     d = length(x[:,1])
     
     #Create a blank choicemap
@@ -76,7 +90,7 @@ end;
     l_real = l
     obs[:l] = l
     
-    k_range = 16 #Maximum number of neurons per layer
+    k_range = maximum_width #Maximum number of neurons per layer
     k_list = [Int(i) for i in 1:k_range]
     
     #Create individual weight and bias vectors
@@ -137,7 +151,7 @@ end;
     end
     
     #Return Network Scores for X
-    scores = G(x,obs)
+    scores = G(x,obs,softmax_scale)
     
     #Logistic Classification Likelihood
     y = zeros(length(scores))
