@@ -1,0 +1,19 @@
+# Historical settings; OptDigits runner support is pending. See README.md.
+# Source: OptDigits/dockeropt5c at ff0b6e3f8ddb15326bd8ddd8f65aecf4b264954e
+name = "OptDigits 5-class B"
+classes = 5
+samples_per_class = 50
+test_samples_per_class = 200
+training_seed = 1
+test_seed = 300
+pca_dimensions = 20
+maximum_width = 64
+softmax_scale = 0.5
+iterations = 1000
+chains = 16
+initial_width_stride = 4
+initial_candidates = 100
+target_acceptance = 0.65
+nuts_samples = 3
+nuts_adaptation = 3
+nuts_delta_max = 10
