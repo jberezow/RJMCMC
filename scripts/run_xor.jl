@@ -41,7 +41,7 @@ result = run_xor(
     nuts_samples=Int(config["nuts_samples"]),
     nuts_adaptation=Int(config["nuts_adaptation"]),
 )
-save_xor_result(output_path, result)
+save_result(output_path, result)
 
 println("Configuration: $(config["name"]) ($config_path)")
 println("Completed $(length(result.traces)) XOR iterations")

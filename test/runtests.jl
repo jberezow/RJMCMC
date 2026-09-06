@@ -15,7 +15,7 @@ end
 @testset "XOR model initialization" begin
     data = generate_xor_data(samples_per_mode=2, seed=11)
     prepare_xor!(data)
-    trace = initial_xor_trace(1)
+    trace = initial_trace(1)
 
     @test trace[:l] == 1
     @test trace[(:k, 1)] == 1
@@ -39,8 +39,8 @@ end
 
     mktempdir() do directory
         path = joinpath(directory, "xor-result.jls")
-        save_xor_result(path, result)
-        restored = load_xor_result(path)
+        save_result(path, result)
+        restored = load_result(path)
         @test restored.scores == result.scores
         @test restored.widths == result.widths
         @test restored.settings == result.settings
@@ -102,9 +102,68 @@ end
 @testset "XOR width bound" begin
     data = generate_xor_data(samples_per_mode=2)
     prepare_xor!(data; maximum_width=32)
-    trace = initial_xor_trace(32)
+    trace = initial_trace(32)
     @test isfinite(get_score(trace))
     @test trace[(:k, 1)] == 32
     @test_throws ArgumentError prepare_xor!(data; maximum_width=1)
     prepare_xor!(data)
+end
+
+@testset "OptDigits loader" begin
+    if !isfile(joinpath(optdigits_directory(), "optdigits_x.jld"))
+        @info "skipping: no OptDigits arrays in $(optdigits_directory())"
+    else
+        settings = (
+            classes=5,
+            samples_per_class=5,
+            test_samples_per_class=10,
+            pca_dimensions=4,
+        )
+        data = load_optdigits(; settings...)
+        repeated = load_optdigits(; settings...)
+
+        @test size(data.x_train) == (25, 4)
+        @test size(data.x_test) == (50, 4)
+        @test data.y_train == repeat(1:5, inner=5)
+        @test data.y_test == repeat(1:5, inner=10)
+        @test data.x_train == repeated.x_train
+        @test data.x_test == repeated.x_test
+
+        prepare_optdigits!(data; maximum_width=8)
+        trace = initial_trace(4)
+        @test trace[(:k, 1)] == 4
+        @test trace[(:k, 2)] == 5
+        @test isfinite(get_score(trace))
+        @test size(predict_probabilities(trace, data.x_test)) == (5, 50)
+
+        Random.seed!(5)
+        best = best_initial_trace(4, candidates=3)
+        Random.seed!(5)
+        draws = [get_score(initial_trace(4)) for _ = 1:3]
+        @test best[(:k, 1)] == 4
+        @test get_score(best) == maximum(draws)
+
+        result = run_optdigits(;
+            settings...,
+            iterations=1,
+            candidates=2,
+            initial_width=2,
+            maximum_width=8,
+        )
+        @test length(result.traces) == 1
+        @test isfinite(only(result.scores))
+        @test 1 <= only(result.widths) <= 8
+        @test 0 <= classification_accuracy(
+            only(result.traces),
+            result.data.x_test,
+            result.data.y_test,
+        ) <= 1
+
+        mktempdir() do directory
+            path = joinpath(directory, "optdigits-result.jls")
+            save_result(path, result)
+            @test load_result(path).settings == result.settings
+        end
+    end
+    prepare_xor!(generate_xor_data(samples_per_mode=2))
 end

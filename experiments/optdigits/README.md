@@ -1,13 +1,7 @@
 # OptDigits experiments
 
 These configurations record the four variable-width classification experiments
-from the thesis. OptDigits loading and runner support have not yet been migrated;
-these files cannot be used with `scripts/run_xor.jl`. The shared width model
-accepts `(x, classes, maximum_width, softmax_scale)` as Gen arguments, with
-XOR defaults `(x, 2, 16, 0.5)`. Here `x` stores one observation per column.
-Predictions and node proposals retain the settings carried by each trace.
-The sampler still requires its ambient data and width bounds to be installed
-consistently; a complete OptDigits setup is pending.
+from the thesis.
 
 | Configuration | Historical directory | Classes | Maximum width | Softmax scale |
 |---|---|---:|---:|---:|
@@ -17,20 +11,31 @@ consistently; a complete OptDigits setup is pending.
 | [10-class-b.toml](10-class-b.toml) | `dockeropt10c` | 10 | 128 | 0.5 |
 
 The names follow the thesis A/B labels, which differ from the Docker b/c
-suffixes. The softmax scale multiplies the logits before exponentiation.
-All four models use one hidden layer, a uniform prior over widths from 1 to
-the configured maximum, and fixed unit Gaussian weight and bias priors.
+suffixes. The softmax scale multiplies the logits before exponentiation. All
+four models use one hidden layer, a uniform prior over widths from 1 to the
+configured maximum, and fixed unit Gaussian weight and bias priors.
 
-Each experiment selects 50 training and 200 test samples per class and fits
-PCA on the training sample with `maxoutdim = 20`. The five-class experiments
-use digits 0–4; the historical arrays encode class labels starting at 1.
+## Running
 
-The original runners use 16 threads for 16 chains, each with 1,000 RJNUTS
-iterations. Chain `i` starts at width `initial_width_stride * i`, retaining
-the best of `initial_candidates` traces at that width. The surviving 5-class B
-runner uses 100 candidates; the other three use 1,000. `nuts_samples`,
-`nuts_adaptation`, and `nuts_delta_max` record the original globals `m`, `m2`,
-and `Δ_max`; the target acceptance is `acc_prob`.
+The `optdigits_x.jld` and `optdigits_y.jld` arrays are not distributed with the
+repository. Place them in `data/optdigits/`, or point `OPTDIGITS_DIR` or
+`--data=` at the directory holding them.
+
+```bash
+julia --project=. scripts/run_optdigits.jl --config=experiments/optdigits/10-class-a.toml --chain=3
+```
+
+The runner advances one chain. `--chain=i` reproduces the historical chain `i`,
+starting at hidden width `initial_width_stride * i`; `--iterations`,
+`--candidates`, `--initial-width`, `--seed`, and `--output` override the
+configuration for shorter runs. The original runners ran 16 such chains across
+16 threads.
+
+Each experiment selects 50 training and 200 test samples per class and fits PCA
+on the training sample with `maxoutdim = 20`. The five-class experiments use
+digits 0–4; the historical arrays encode class labels starting at 1.
+`nuts_samples`, `nuts_adaptation`, and `nuts_delta_max` record the original
+globals `m`, `m2`, and `Δ_max`; the target acceptance is `acc_prob`.
 
 ## Sources and migration notes
 
@@ -48,24 +53,26 @@ results paragraph identifies them as 5A and 5B. The ten-class subsection repeats
 the five-class sample totals; its introductory description and the loader
 agree on 500 training and 2,000 test samples for ten classes.
 
-The thesis describes 1,000 initialization candidates for the five-class runs,
-but `dockeropt5c/main.jl` passes 100 to `find_best_trace`. The 5-class B
-configuration preserves that source value. Which value was used for the
-reported run remains unresolved.
+`dockeropt5c/main.jl` calls `find_best_trace(xt, y, 100, obs)` where the other
+three pass 1,000, but the function ignores its count argument and always loops
+1,000 times in all four copies. Every reported run therefore used 1,000
+initialization candidates, matching the thesis description, and all four
+configurations record 1,000.
 
-The loader has several details to preserve when extracting it:
+`load_optdigits` reproduces the historical loader bit for bit at both class
+counts. Three of its behaviors are preserved deliberately:
 
 - The `.jld` inputs are read with Julia `deserialize`, despite their extension.
-- `ZScoreTransform` is fitted to the full loaded array with `dims=2` before
-  sampling. PCA is then fitted to the transposed training sample and applied
-  to both samples.
-- Training and test samples are drawn independently from the same arrays,
-  using seeds 1 and 300. The test-seed comment says 2, but the call uses 300.
-  `balanced_set` shuffles and selects each class without excluding training
-  rows from the test selection. The source therefore does not guarantee
-  disjoint samples, despite the thesis prose referring to train/test datasets.
+- `ZScoreTransform` is fitted with `dims=2` over the raw `5620 × 64`
+  observations-by-pixels array, which standardizes each image across its own 64
+  pixels rather than each pixel across the dataset. PCA is then fitted to the
+  transposed training sample and applied to both samples.
+- Training and test samples are drawn by separate `balanced_set` calls over the
+  same array, using seeds 1 and 300. The test-seed comment says 2, but the call
+  uses 300.
 
-The next implementation step is to extract the loader with these behaviors
-intact. Dataset provenance and the saved arrays still need inspection before
-choosing a distribution method or
-claiming reproduction of the reported results.
+Dataset provenance and sampling are still under review. Establish both before
+choosing a distribution method or claiming reproduction of the reported results.
+
+`MultivariateStats` is pinned to 0.8.0 because `transform` was renamed to
+`predict` in 0.9 and removed in 0.10.

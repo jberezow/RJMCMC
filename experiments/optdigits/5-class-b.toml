@@ -1,4 +1,3 @@
-# Historical settings; OptDigits runner support is pending. See README.md.
 # Source: OptDigits/dockeropt5c at ff0b6e3f8ddb15326bd8ddd8f65aecf4b264954e
 name = "OptDigits 5-class B"
 classes = 5
@@ -12,7 +11,9 @@ softmax_scale = 0.5
 iterations = 1000
 chains = 16
 initial_width_stride = 4
-initial_candidates = 100
+# main.jl passes 100, but find_best_trace ignores that argument and always
+# draws 1,000 candidates. See README.md.
+initial_candidates = 1000
 target_acceptance = 0.65
 nuts_samples = 3
 nuts_adaptation = 3

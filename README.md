@@ -25,7 +25,7 @@ sampled posterior distribution of network parameters and architectures.
 
 ## Run the XOR experiment
 
-The XOR classifier is the current self-contained example. It demonstrates
+The XOR classifier is the self-contained example. It demonstrates
 variable-width inference without requiring an external dataset.
 
 The historical environment uses Linux and Julia 1.6.1. From the repository
@@ -65,6 +65,24 @@ The noisy variant can be selected with
 `experiments/xor/noisy.toml`. See
 [`experiments/xor/README.md`](experiments/xor/README.md) for additional details.
 
+## Run the OptDigits experiment
+
+The OptDigits experiments apply the same variable-width sampler to handwritten
+digit classification. They need the `optdigits_x.jld` and `optdigits_y.jld`
+arrays, which are not distributed with the repository; place them in
+`data/optdigits/` or set `OPTDIGITS_DIR`.
+
+```sh
+julia --project=. scripts/run_optdigits.jl \
+  --config=experiments/optdigits/5-class-a.toml \
+  --chain=1
+```
+
+The runner advances one chain, starting at the hidden width the historical
+chain index implies. The four thesis configurations and the loader's preserved
+behaviors are described in
+[`experiments/optdigits/README.md`](experiments/optdigits/README.md).
+
 ## Repository layout
 
 ```text
@@ -76,8 +94,8 @@ notebooks/    Thesis-era exploratory and analysis notebooks
 archive/      Historical implementations and research artifacts
 ```
 
-Generated experiment results are written beneath `results/` and are not
-tracked by Git.
+Datasets are read from `data/` and generated experiment results are written
+beneath `results/`; neither is tracked by Git.
 
 ## Thesis
 

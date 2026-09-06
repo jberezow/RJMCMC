@@ -1,4 +1,3 @@
-# Historical settings; OptDigits runner support is pending. See README.md.
 # Source: OptDigits/dockeropt10b at ff0b6e3f8ddb15326bd8ddd8f65aecf4b264954e
 name = "OptDigits 10-class A"
 classes = 10

@@ -12,7 +12,7 @@ input_path === nothing && error("provide --input=results/xor/<result>.jls")
 output_dir = argument("output-dir", joinpath(dirname(input_path), "analysis"))
 burn_in_requested = argument("burn-in", 0, value -> parse(Int, value))
 
-result = load_xor_result(input_path)
+result = load_result(input_path)
 isempty(result.traces) && error("result contains no traces")
 burn_in = clamp(burn_in_requested, 0, length(result.traces) - 1)
 posterior_traces = result.traces[(burn_in + 1):end]
