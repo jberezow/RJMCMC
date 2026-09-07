@@ -105,7 +105,7 @@ scripts/      Experiment runners and analysis scripts
 experiments/  Experiment configurations and usage notes
 data/         Input datasets
 test/         Julia tests and short sampler checks
-archive/      NUTS lineage and thesis source backups
+archive/      Earlier NUTS implementations
 ```
 
 The Boston Housing and OptDigits datasets are tracked in `data/`. Generated
@@ -121,7 +121,8 @@ docker build -t rjbnn . && docker run --rm rjbnn
 ## Thesis
 
 Jonathan Berezowski. *Trans-dimensional Inference over Bayesian Neural
-Networks*. MSc thesis, UiT The Arctic University of Norway, 2021.
+Networks*. MSc thesis, UiT The Arctic University of Norway, 2021. Included here
+as `Thesis_Final.pdf`.
 
 The implementation was built with [Gen](https://www.gen.dev/). The sampler
 builds on Green's reversible-jump MCMC and the Hoffman--Gelman NUTS algorithm,
