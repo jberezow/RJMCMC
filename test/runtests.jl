@@ -167,3 +167,5 @@ end
     end
     prepare_xor!(generate_xor_data(samples_per_mode=2))
 end
+
+include("depth_bnn.jl")

@@ -9,6 +9,9 @@ using Random
 using Serialization
 using StatsBase
 
+include("models/depth_bnn.jl")
+include("proposals/layer_birth_death.jl")
+
 include("models/width_bnn.jl")
 using .BNN: G, classifier, softmax_
 
@@ -38,7 +41,9 @@ include("data/optdigits.jl")
 include("proposals/node_birth_death.jl")
 include("inference/width_rjnuts.jl")
 
-export ExperimentData,
+export DepthBNN,
+       LayerProposals,
+       ExperimentData,
        ChainResult,
        XORData,
        XORResult,
