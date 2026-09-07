@@ -1,4 +1,3 @@
-*.pdf
 .ipynb_checkpoints/
 *.bson
 *.cov
