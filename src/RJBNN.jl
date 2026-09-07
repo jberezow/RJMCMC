@@ -36,6 +36,7 @@ layer_unpacker(index, layers, widths) =
     BNN.layer_unpacker(index, layers, widths, size(xt, 1))
 
 include("inference/nuts.jl")
+include("inference/depth_rjnuts.jl")
 include("inference/chains.jl")
 include("data/xor.jl")
 include("data/optdigits.jl")
@@ -45,6 +46,7 @@ include("inference/width_rjnuts.jl")
 
 export DepthBNN,
        LayerProposals,
+       DepthRJNUTS,
        ExperimentData,
        ChainResult,
        XORData,
@@ -62,6 +64,14 @@ export DepthBNN,
        optdigits_directory,
        load_boston,
        boston_directory,
+       BostonResult,
+       run_boston,
+       run_depth_chain,
+       initial_boston_trace,
+       best_initial_boston_trace,
+       boston_predictions,
+       boston_rmse,
+       scaled_mse,
        initial_trace,
        best_initial_trace,
        run_chain,

@@ -9,8 +9,25 @@ The implementation is available as `RJBNN.DepthBNN` in
 [`src/models/depth_bnn.jl`](../../src/models/depth_bnn.jl), with layer birth/death
 moves in `RJBNN.LayerProposals`
 ([source](../../src/proposals/layer_birth_death.jl)). The data loader is
-available as `RJBNN.load_boston`; the full RJNUTS experiment runner is not yet
-included.
+available as `RJBNN.load_boston`, and the depth sampler as `RJBNN.DepthRJNUTS`
+([source](../../src/inference/depth_rjnuts.jl)).
+
+## Running
+
+```bash
+julia --project=. scripts/run_boston.jl --config=experiments/boston/4-node-b.toml --chain=3
+```
+
+The runner advances one chain. `--chain=i` uses the initialization schedule of
+historical chain `i`, starting at depth `((i - 1) % maximum_depth) + 1`;
+`--iterations`, `--candidates`, `--initial-depth`, `--seed`, and `--output`
+override the configuration for shorter runs. The original runners ran 16 such
+chains across 16 threads.
+
+Initialization keeps the candidate with the lowest scaled MSE against the
+training responses, which is the historical depth criterion and differs from the
+width experiments' posterior-score ranking. See
+[provenance](../../docs/provenance.md).
 
 ## Data preparation
 
@@ -79,8 +96,9 @@ restored, q_death = LayerProposals.layer_death(born)
 Birth appends a hidden layer immediately before the output; death removes the
 last hidden layer. Existing parameters and responses are carried through Gen's
 `update`. The returned `q` values preserve the historical forward/reverse
-proposal-density terms; these moves alone are not a complete RJNUTS sampler.
-Bounds are read from the model arguments stored in the trace.
+proposal-density terms. Bounds are read from the model arguments stored in the
+trace. `DepthRJNUTS.layer_parameter` composes these moves into the full
+across-dimension kernel.
 
 ## Historical source
 

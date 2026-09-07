@@ -83,6 +83,22 @@ chain index implies. The four thesis configurations and the loader's preserved
 behaviors are described in
 [`experiments/optdigits/README.md`](experiments/optdigits/README.md).
 
+## Run the Boston Housing experiment
+
+The Boston Housing experiments vary network *depth* rather than width, using
+layer birth/death moves on a regression network. The dataset ships with the
+repository, so no additional setup is needed.
+
+```sh
+julia --project=. scripts/run_boston.jl \
+  --config=experiments/boston/2-node-a.toml \
+  --chain=1
+```
+
+The four thesis configurations and the preserved details of the data
+preparation are described in
+[`experiments/boston/README.md`](experiments/boston/README.md).
+
 ## Repository layout
 
 ```text

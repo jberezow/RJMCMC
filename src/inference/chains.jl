@@ -2,6 +2,13 @@
 #Shared Width-Experiment Runtime
 #--------------------------------
 
+# The width experiments keep their bounds and data in the module state installed
+# by `install_data!`, while the depth experiments read theirs from trace
+# arguments. The two are deliberately not unified: each family reproduces its own
+# historical wiring.
+# TODO: consider migrating the width family to the depth pattern once parity work
+# is finished.
+
 """Supertype for datasets that can be installed for the width sampler."""
 abstract type ExperimentData end
 
@@ -63,21 +70,27 @@ function initial_trace(hidden_width::Int)
 end
 
 """
-    best_initial_trace(hidden_width; candidates=1000)
+    best_initial_trace(hidden_width; candidates=1000, criterion=get_score)
 
-Retain the highest-scoring of `candidates` prior draws at a fixed hidden width.
-The historical `find_best_trace` took a candidate count but always looped 1,000
+Retain the best of `candidates` prior draws at a fixed hidden width, ranking by
+`criterion` and keeping the largest value. The historical `find_best_trace` for
+the width experiments ranked by posterior score; the depth experiments used a
+different rule, so Boston has its own
+[`best_initial_boston_trace`](@ref) rather than passing a `criterion` here.
+
+The width `find_best_trace` took a candidate count but always looped 1,000
 times, so 1,000 is the value every reported OptDigits run used.
 """
-function best_initial_trace(hidden_width::Int; candidates::Int=1000)
+function best_initial_trace(hidden_width::Int; candidates::Int=1000,
+                            criterion=get_score)
     candidates >= 1 || throw(ArgumentError("candidates must be positive"))
     best = initial_trace(hidden_width)
-    best_score = get_score(best)
+    best_value = criterion(best)
     for _ in 2:candidates
         trace = initial_trace(hidden_width)
-        score = get_score(trace)
-        if score > best_score
-            best, best_score = trace, score
+        value = criterion(trace)
+        if value > best_value
+            best, best_value = trace, value
         end
     end
     return best
