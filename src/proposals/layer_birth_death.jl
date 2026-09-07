@@ -1,5 +1,4 @@
-# Shared layer proposals from BostonHousing/docker-parallel2a/proposals.jl
-# at 3a2c64d0b8c0f1483f018ab6db0fcb2365a91021. Bounds now come from trace arguments.
+# Layer proposals, from BostonHousing/docker-parallel2a/proposals.jl.
 module LayerProposals
 using Gen
 using Distributions

@@ -30,7 +30,7 @@ optdigits_directory() = get(
     balanced_set(x, y, n, c, seed=0)
 
 Draw `n` observations of each class `1:c` after a seeded shuffle, ordered by
-class. Ported verbatim from `utils.jl`.
+class.
 """
 function balanced_set(x::AbstractMatrix, y::AbstractVector, n::Int, c::Int, seed::Int=0)
     if seed != 0
@@ -56,10 +56,10 @@ end
 """
     load_optdigits(; classes, kwargs...)
 
-Load, standardize, sample, and project the OptDigits arrays as the historical
-`LoadData.jl` did. The `.jld` files are read with `deserialize`, and the
-`ZScoreTransform` is fitted over `dims=2` of the raw `observations × pixels`
-array, which standardizes each image across its own pixels.
+Load, standardize, sample, and project the OptDigits arrays. The `.jld` files
+are read with `deserialize`, and the `ZScoreTransform` is fitted over `dims=2`
+of the raw `observations × pixels` array, standardizing each image across its
+own pixels.
 """
 function load_optdigits(;
     classes::Int,

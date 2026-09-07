@@ -1,5 +1,4 @@
-# Extracted from OptDigits/dockerxor/BNN.jl; the OptDigits variants at
-# ff0b6e3f8ddb15326bd8ddd8f65aecf4b264954e supply the class, width, and scale settings.
+# Width model, from OptDigits/dockerxor/BNN.jl.
 module BNN
 using Gen
 using Distributions
@@ -37,7 +36,7 @@ function softmax_(arr::AbstractArray, scale=0.5)
 end;
 
 #Bayesian Neural Net
-# Old serialized XOR traces have only the input argument.
+# Traces stored with only the input argument use scale 0.5.
 function G(x, trace::Gen.Trace)
     args = get_args(trace)
     scale = length(args) >= 4 ? args[4] : 0.5
@@ -72,7 +71,7 @@ end;
 #-------------------
 #Probabilistic Model
 #-------------------
-# Defaults reproduce XOR. Settings are trace arguments, not mutable model globals.
+# Defaults match the XOR configuration.
 @gen function classifier(x, classes=2, maximum_width=16, softmax_scale=0.5)
     classes >= 2 || throw(ArgumentError("classes must be at least 2"))
     maximum_width >= 1 || throw(ArgumentError("maximum_width must be positive"))

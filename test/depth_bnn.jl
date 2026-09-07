@@ -35,7 +35,7 @@ using LinearAlgebra
             likelihood(other_variance) - likelihood(variance)
         @test get_retval(changed) == get_retval(trace)
 
-        # The auxiliary Gamma draw remains a choice, but is not the noise variance.
+        # The Gamma draw is a choice but not the noise variance.
         changed_tau, _, _, _ = update(trace, args, map(_ -> NoChange(), args),
             choicemap((:τᵧ, 2.0)))
         @test get_retval(changed_tau) == get_retval(trace)

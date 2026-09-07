@@ -72,13 +72,12 @@ using TOML
         @test probabilities == get_retval(trace)
         @test vec(sum(probabilities; dims=1)) ≈ ones(2)
 
-        # With every choice fixed, changing only the uniform width prior changes
-        # the score by its known normalization constant.
+        # With all choices fixed, doubling the width prior shifts the score by log(2).
         wider, _ = generate(RJBNN.classifier,
             (x, classes, 2 * maximum_width, scale), get_choices(trace))
         @test get_score(wider) - get_score(trace) ≈ -log(2)
 
-        # The historical proposal helpers still use ambient data and width bounds.
+        # The proposal helpers read ambient data and width bounds.
         @eval RJBNN begin
             xt = $x
             y = $([1, classes])

@@ -1,12 +1,4 @@
-# BostonHousing/docker-parallel2a/RJNUTS.jl at
-# 3a2c64d0b8c0f1483f018ab6db0fcb2365a91021. That blob is byte-identical to 4B and
-# differs from 4A only in whitespace; 2B is the one substantive variant, and its
-# difference is carried here by `within_dimension_update`.
-#
-# This driver keeps the historical function names, which collide with the width
-# driver's same-named but differently-bodied functions, so it lives in its own
-# module. Sampler settings are passed explicitly rather than read from module
-# globals, matching DepthBNN and LayerProposals.
+# Depth RJNUTS driver, from BostonHousing/docker-parallel2a/RJNUTS.jl.
 module DepthRJNUTS
 using Gen
 using Distributions
@@ -18,9 +10,9 @@ export DepthSettings
 """
 Sampler settings for one Boston experiment.
 
-`within_dimension_update` selects the historical within-dimension step: `:mixed`
-chooses layer-wise or all-parameter NUTS with equal probability (2A, 4A, 4B),
-while `:all` always takes the all-parameter step (2B).
+`within_dimension_update` selects the within-dimension step: `:mixed` chooses
+layer-wise or all-parameter NUTS with equal probability, `:all` always takes the
+all-parameter step.
 """
 struct DepthSettings
     target_acceptance::Float64
@@ -67,8 +59,7 @@ function nuts_parameters(trace, s::DepthSettings)
     end
 end
 
-# The layer-wise pass calls NUTS with `m` for both arguments, where the
-# all-parameter step above uses `m` and `m2`.
+# The layer-wise pass passes `m` as both NUTS sample arguments.
 function layer_nuts(trace, s::DepthSettings, mode="draw")
     prev_score = get_score(trace)
     new_trace = trace

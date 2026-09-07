@@ -1,6 +1,4 @@
-# BostonHousing/docker-parallel2a/BNN.jl at
-# 3a2c64d0b8c0f1483f018ab6db0fcb2365a91021 (also the surviving 2B model).
-# Width, maximum depth, and likelihood variance parameterize the 4A/4B variants.
+# Depth model, from BostonHousing/docker-parallel2a/BNN.jl.
 module DepthBNN
 using Gen
 using Distributions
@@ -55,8 +53,8 @@ end;
 
 Boston Housing regression model with variable hidden-layer depth. Columns of
 `x` are observations with 13 features. `likelihood_variance` is the diagonal
-observation covariance; the historical `:τᵧ` draw remains in the trace but does
-not control that covariance. Defaults match the surviving 2A model.
+observation covariance; the `:τᵧ` draw does not control it. Defaults match the
+2A configuration.
 """
 @gen function interpolator(x, width=2, maximum_depth=8, likelihood_variance=1.0)
     size(x, 1) == 13 || throw(ArgumentError("Boston inputs must have 13 feature rows"))

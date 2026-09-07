@@ -16,9 +16,7 @@ include("proposals/layer_birth_death.jl")
 include("models/width_bnn.jl")
 using .BNN: G, classifier, softmax_
 
-# These names were ambient globals in the historical experiment scripts. They
-# remain module state for the faithful baseline and will be replaced by explicit
-# sampler state only after parity has been established.
+# Ambient state read by the width model, proposals and RJNUTS driver.
 Δ_max = 1
 acc_prob = 0.65
 m = 4
@@ -30,8 +28,7 @@ y = Int[]
 xt = zeros(2, 0)
 obs_master = choicemap()
 
-# The historical `utils.jl` supplied this three-argument adapter for proposal
-# code, while the BNN module owned the input-dimension-aware implementation.
+# Three-argument form used by the width proposals.
 layer_unpacker(index, layers, widths) =
     BNN.layer_unpacker(index, layers, widths, size(xt, 1))
 

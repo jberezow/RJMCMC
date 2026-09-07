@@ -26,14 +26,14 @@ using StatsBase
         @test_throws ArgumentError initial_boston_trace(data, 0; model...)
         @test_throws ArgumentError initial_boston_trace(data, 9; model...)
 
-        # Selection minimizes scaled MSE, unlike the width path's posterior score.
+        # Selection minimizes scaled MSE.
         errors(trace) = scaled_mse(boston_predictions(trace, data.x_train),
                                    data.y_train, data.response_standardizer)
         Random.seed!(9)
         best = best_initial_boston_trace(data, 2; candidates=4, model...)
         Random.seed!(9)
         drawn = [initial_boston_trace(data, 2; model...) for _ = 1:6]
-        # The historical routine draws one extra candidate it never compares.
+        # One extra candidate is drawn but not compared.
         compared = errors.(drawn[[1; 3:6]])
         @test errors(best) == minimum(compared)
         @test best[:l] == 2
@@ -68,8 +68,7 @@ using StatsBase
         # Chain i starts at ((i - 1) % maximum_depth) + 1.
         for (chain, maximum_depth, expected) in ((1, 8, 1), (9, 8, 1), (16, 8, 8),
                                                  (5, 4, 1), (16, 4, 4))
-            # Zero iterations: this checks the schedule, not the sampler, and
-            # initializing at depth 8 is expensive.
+            # Zero iterations: this checks the schedule, not the sampler.
             result = run_boston(iterations=0, candidates=1, chain=chain,
                                 maximum_depth=maximum_depth,
                                 width=maximum_depth == 4 ? 4 : 2)

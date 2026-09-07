@@ -1,4 +1,4 @@
-"""Training and test data for the historical synthetic XOR experiment."""
+"""Training and test data for the synthetic XOR experiment."""
 struct XORData <: ExperimentData
     x_train::Matrix{Float64}
     y_train::Vector{Int}
@@ -45,9 +45,8 @@ end
     generate_xor_data(; samples_per_mode=50, variance=0.015, bound=0.5, seed=1)
 
 Generate independent training and test sets using the four-mode construction
-from `OptDigits/dockerxor`. The historical code called the parameter `σₐ`, but
-passed it directly as the diagonal covariance of `MvNormal`; `variance` names
-that implemented behavior explicitly.
+from `OptDigits/dockerxor`. `variance` is passed directly as the diagonal
+covariance of `MvNormal`.
 """
 function generate_xor_data(;
     samples_per_mode::Int=50,
@@ -66,7 +65,7 @@ function generate_xor_data(;
     )
 end
 
-"""Install one XOR dataset and its historical sampler settings."""
+"""Install one XOR dataset and its sampler settings."""
 function prepare_xor!(
     data::XORData;
     maximum_width::Int=16,
@@ -89,7 +88,7 @@ function prepare_xor!(
     return data
 end
 
-"""Run a short, single-chain version of the historical XOR sampler."""
+"""Run a single XOR chain."""
 function run_xor(;
     iterations::Int=1,
     samples_per_mode::Int=50,

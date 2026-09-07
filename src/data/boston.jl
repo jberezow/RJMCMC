@@ -9,7 +9,7 @@ struct BostonData{TX, TY} <: ExperimentData
     row_order::Vector{Int}
 end
 
-"""Directory holding the canonical 506-row `boston.jld` dataset."""
+"""Directory holding the 506-row `boston.jld` dataset."""
 boston_directory() = get(
     ENV,
     "BOSTON_HOUSING_DIR",
@@ -19,9 +19,9 @@ boston_directory() = get(
 """
     load_boston(; seed=23, directory=boston_directory())
 
-Reproduce the data preparation shared by the four final Boston experiment
-snapshots. The stored rows are shuffled, then all 13 predictors and the response
-are z-scored using the complete dataset before it is split into equal halves.
+Load the Boston Housing data. The stored rows are shuffled, then all 13
+predictors and the response are z-scored using the complete dataset before it is
+split into equal halves.
 Inputs are returned as `features × observations`, as expected by the depth
 model. The fitted transforms are retained for converting predictions back to
 the original housing-value scale.
@@ -81,10 +81,8 @@ boston_predictions(trace, inputs::AbstractMatrix) = vec(DepthBNN.G(inputs, trace
 """
     scaled_mse(predictions, targets, standardizer)
 
-The historical `mse_scaled`: both vectors are returned to the original housing
-scale before the error is taken. Note the historical formula divides the square
-root of the summed squared error by the number of observations, which is not the
-RMSE reported elsewhere in the thesis.
+Both vectors are returned to the original housing scale, then the square root
+of the summed squared error is divided by the number of observations.
 """
 function scaled_mse(predictions, targets, standardizer)
     p = StatsBase.reconstruct(standardizer, collect(float(predictions)))
@@ -117,10 +115,7 @@ end
     best_initial_boston_trace(data, depth; candidates=1000, kwargs...)
 
 Retain the candidate with the lowest [`scaled_mse`](@ref) against the training
-responses. This is the historical `find_best_trace` for the depth experiments,
-and its criterion differs from the width experiments, which rank candidates by
-posterior score. The extra draw mirrors the historical function, which generated
-one candidate it never compared.
+responses, out of `candidates` draws plus one that is drawn but not compared.
 """
 function best_initial_boston_trace(
     data::BostonData,
@@ -138,7 +133,7 @@ function best_initial_boston_trace(
 
     best = draw()
     best_error = error_of(best)
-    draw()  # generated and scored but never compared in the historical source
+    draw()  # drawn but not compared
     for _ = 1:candidates
         trace = draw()
         candidate_error = error_of(trace)
@@ -176,8 +171,7 @@ end
     run_boston(; kwargs...)
 
 Run one Boston chain. Chain `i` starts at depth `((i - 1) % maximum_depth) + 1`,
-reproducing the historical schedule that spread 16 chains evenly over the
-available depths.
+spreading 16 chains evenly over the available depths.
 """
 function run_boston(;
     iterations::Int=1,
@@ -197,7 +191,7 @@ function run_boston(;
     directory::AbstractString=boston_directory(),
 )
     data = load_boston(seed=data_seed, directory=directory)
-    # The preserved NUTS kernel reads this threshold from module state.
+    # NUTS reads this threshold from module state.
     global Δ_max = divergence_threshold
     settings = DepthRJNUTS.DepthSettings(
         target_acceptance, nuts_samples, nuts_adaptation, within_dimension_update)

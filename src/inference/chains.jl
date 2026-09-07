@@ -2,12 +2,7 @@
 #Shared Width-Experiment Runtime
 #--------------------------------
 
-# The width experiments keep their bounds and data in the module state installed
-# by `install_data!`, while the depth experiments read theirs from trace
-# arguments. The two are deliberately not unified: each family reproduces its own
-# historical wiring.
-# TODO: consider migrating the width family to the depth pattern once parity work
-# is finished.
+# TODO: consider migrating the width family to the depth pattern
 
 """Supertype for datasets that can be installed for the width sampler."""
 abstract type ExperimentData end
@@ -73,13 +68,8 @@ end
     best_initial_trace(hidden_width; candidates=1000, criterion=get_score)
 
 Retain the best of `candidates` prior draws at a fixed hidden width, ranking by
-`criterion` and keeping the largest value. The historical `find_best_trace` for
-the width experiments ranked by posterior score; the depth experiments used a
-different rule, so Boston has its own
-[`best_initial_boston_trace`](@ref) rather than passing a `criterion` here.
-
-The width `find_best_trace` took a candidate count but always looped 1,000
-times, so 1,000 is the value every reported OptDigits run used.
+`criterion` and keeping the largest value. Boston ranks by lowest error instead,
+through [`best_initial_boston_trace`](@ref).
 """
 function best_initial_trace(hidden_width::Int; candidates::Int=1000,
                             criterion=get_score)
