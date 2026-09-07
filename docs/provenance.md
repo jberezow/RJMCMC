@@ -12,7 +12,7 @@ carries a `pre-cleanup` tag preserving its original committed state:
 
 | Repository | Revision inspected | Contributes |
 |---|---|---|
-| `RJMCMC` | `bc0f872` | This repository; earlier prototypes under `archive/` |
+| `RJMCMC` | `bc0f872` | This repository, and its pre-consolidation history |
 | `BostonHousing` | [`3a2c64d`](https://github.com/jberezow/BostonHousing/tree/3a2c64d0b8c0f1483f018ab6db0fcb2365a91021) | Variable-depth model, layer proposals, depth sampler, data |
 | `OptDigits` | [`ff0b6e3`](https://github.com/jberezow/OptDigits/tree/ff0b6e3f8ddb15326bd8ddd8f65aecf4b264954e) | Variable-width model, node proposals, width sampler, XOR and OptDigits data |
 
@@ -121,6 +121,51 @@ routine also generated one candidate whose error it computed but never compared;
 Unlike the width `find_best_trace`, the depth version genuinely honors its
 candidate-count argument.
 
+### Evaluation reproduction
+
+The September 2026 evaluation of the archived depth chains recovered the
+Chapter 7 table `tab:results_bh` figures:
+
+| Thesis experiment | Published RMSE | Recomputed | Published layer mode | Recomputed |
+|---|---:|---:|---:|---:|
+| 2A | 0.236 | 0.2357 | 2 | 2 |
+| 2B | 0.245 | 0.2464 | 4 | 4 |
+| 4A | 0.223 | 0.2233 | 3 | 3 |
+| 4B | 0.215 | 0.2155 | 3 | 3 |
+
+The metric is the historical `mse_scaled`, which the thesis reports as RMSE:
+predictions and targets are returned to the original housing scale, and the
+square root of the summed squared error is divided by the number of
+observations. `scaled_mse` reproduces it.
+
+Marginalization averages the predicted response across every stored iteration of
+all 16 chains and then applies the metric once. The analysis notebooks used no
+burn-in for these figures, and reproducing the published values requires the
+same: discarding the first 500 iterations moves 2A to 0.2302 and 4A to 0.2174.
+
+The training inputs stored in every chain's trace arguments match those produced
+by `load_boston`, which verifies the migrated loader, `DepthBNN.G`, and
+`scaled_mse` together against the historical runs. As with the width
+experiments, this verifies the data pipeline and the evaluation of archived
+samples; no fresh full-length MCMC reproduction is claimed.
+
+Two details of the published tables:
+
+- The `tab:rmse_arch` best-chain column is not the minimum over all 16 chains.
+  For 2A the published 0.235 is reproduced exactly by chain 3, while chain 11
+  scores 0.231, so at least one chain was excluded from that column. The
+  notebooks carry a `good_traces` list that selects chains.
+- The 2B directory holds 16,006 stored traces where the other three hold 16,016,
+  so at least one 2B chain stopped slightly short of 1,000 iterations. Chains
+  were written every five iterations.
+
+The four result directories `Data/BostonTwo`, `Data/BostonTwob`,
+`Data/BostonFour`, and `Data/BostonFourb` hold the 64 chain files and the
+acceptance records. Preserve them with the source snapshots when archiving.
+Historical traces are read the same way as the width traces described above,
+binding the generated function to `BNN.interpolator.julia_function` rather than
+`BNN.classifier.julia_function`.
+
 ### Known discrepancy: 2B likelihood variance
 
 The thesis specifies a likelihood variance of `0.8` for experiment 2B and reports
@@ -129,6 +174,39 @@ coherent 2B results, but the surviving `docker-parallel2b/BNN.jl` is identical t
 change. `experiments/boston/2-node-b.toml` encodes `0.8` as the intended and
 executed value and records the discrepancy in a comment. The exact source used
 for the 2B run has not been recovered.
+
+## Removed material
+
+The following were removed from the active branch once the migration they
+informed was complete. All remain in Git history and under each repository's
+`pre-cleanup` tag.
+
+- `docker_bh/` — a February 2021 Boston prototype built on the earlier
+  `NUTS_CS` sampler lineage. Its RJNUTS driver sampled the weight and bias
+  hyperparameters directly (`propose_hyperparameters`, `nuts_hyperparameters`),
+  an approach the final experiments abandoned; the corresponding hyperprior code
+  is commented out rather than deleted in the surviving models. It predates the
+  finalized strategy and is not the provenance anchor for anything.
+- `Run1.jld` — early development output. It no longer deserializes: the stored
+  Gen version cannot be resolved against the pinned environment.
+- `boston2.jld` — the 490-row dataset variant belonging to that prototype,
+  produced by removing the 16 observations whose response is capped at 50. The
+  four final experiments used the complete 506-row file instead.
+- `notebooks/` — 23 thesis-era working notebooks. None carried any narrative
+  text, and those closest to being demonstrators depended on helper files in
+  `archive/legacy-julia/`. The notebooks that produced the published tables are
+  the ones in `BostonHousing` and `OptDigits` named above, not these.
+- `archive/early-exploration/`, `archive/notebooks/autosaves/`,
+  `archive/admin-notebooks/`, and the `experiments/`, `proposals/` and
+  `utilities/` subdirectories of `archive/legacy-julia/` — internship-era
+  exploration, editor checkpoints, and development code superseded by the
+  migrated implementations.
+
+`archive/legacy-julia/samplers/` is deliberately retained. `NUTS_CS.jl`,
+`oldNUTS.jl` and `hmc_mod.jl` document the development lineage behind the
+preserved NUTS kernel and are evidence for the attribution and licensing
+question below. `archive/thesis-source-backups/` is retained pending the thesis
+source work. Both should go once those are settled.
 
 ## Open questions
 

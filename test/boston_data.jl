@@ -46,7 +46,8 @@ using StatsBase
 
     mktempdir() do directory
         @test_throws ArgumentError load_boston(directory=directory)
+        # The 490-row prototype variant must be rejected by the size guard.
+        JLD.save(joinpath(directory, "boston.jld"), "boston", zeros(490, 14))
+        @test_throws ArgumentError load_boston(directory=directory)
     end
-    legacy_directory = joinpath(@__DIR__, "..", "docker_bh")
-    @test_throws ArgumentError load_boston(directory=legacy_directory)
 end

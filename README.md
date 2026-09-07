@@ -105,13 +105,22 @@ preparation are described in
 src/          Models, inference algorithms, and reversible-jump proposals
 scripts/      Experiment runners and analysis scripts
 experiments/  Experiment configurations and usage notes
+data/         Input datasets
+docs/         Provenance and reproduction notes
 test/         Julia tests and short sampler checks
-notebooks/    Thesis-era exploratory and analysis notebooks
-archive/      Historical implementations and research artifacts
+archive/      NUTS lineage and thesis source backups
 ```
 
-Datasets are read from `data/` and generated experiment results are written
-beneath `results/`; neither is tracked by Git.
+The Boston Housing dataset is tracked in `data/`; the OptDigits arrays are not
+distributed and must be supplied. Generated results are written beneath
+`results/`, which is not tracked by Git.
+
+`Dockerfile` builds the Julia 1.6.1 reproduction environment and runs the test
+suite by default:
+
+```sh
+docker build -t rjbnn . && docker run --rm rjbnn
+```
 
 ## Thesis
 

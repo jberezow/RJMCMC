@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+title: >-
+  RJBNN: trans-dimensional inference over Bayesian neural
+  networks
+message: >-
+  If you refer to this software, please cite the thesis it
+  accompanies, given under preferred-citation.
+type: software
+authors:
+  - family-names: Berezowski
+    given-names: Jonathan
+repository-code: 'https://github.com/jberezow/RJMCMC'
+abstract: >-
+  Julia implementation of reversible-jump MCMC over Bayesian
+  neural network architectures, sampling jointly over network
+  parameters and either network depth or network width. Not
+  all algorithm code originated here: the No-U-Turn Sampler
+  kernel is derived from an implementation by Kai Xu, and
+  retains its original attribution in the source.
+keywords:
+  - reversible-jump MCMC
+  - Bayesian neural networks
+  - No-U-Turn Sampler
+  - Julia
+  - Gen
+preferred-citation:
+  type: thesis
+  title: Trans-dimensional Inference over Bayesian Neural Networks
+  authors:
+    - family-names: Berezowski
+      given-names: Jonathan
+  year: 2021
+  institution:
+    name: UiT The Arctic University of Norway
+  thesis-type: Master's thesis

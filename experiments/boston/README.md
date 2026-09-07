@@ -49,10 +49,10 @@ The fitted transforms are retained in `data.feature_standardizer` and
 `data.response_standardizer`. Set `BOSTON_HOUSING_DIR` or pass `directory` to
 load the canonical `boston.jld` from another location.
 
-The earlier `docker_bh` snapshot contains a 490-row variant produced by
-removing the 16 observations whose response is capped at 50. The four final
-Boston experiment snapshots instead use the complete 506-row file, which is
-the version loaded here.
+An earlier prototype used a 490-row variant produced by removing the 16
+observations whose response is capped at 50. The four final Boston experiment
+snapshots instead use the complete 506-row file, which is the version loaded
+here, and the loader rejects anything of another size.
 
 ## Model settings
 
