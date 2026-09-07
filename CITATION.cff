@@ -9,7 +9,7 @@ type: software
 authors:
   - family-names: Berezowski
     given-names: Jonathan
-repository-code: 'https://github.com/jberezow/RJMCMC'
+repository-code: 'https://github.com/jberezow/RJBNN'
 abstract: >-
   Julia implementation of reversible-jump MCMC over Bayesian
   neural network architectures, sampling jointly over network

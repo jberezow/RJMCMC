@@ -8,11 +8,13 @@ sampling run.
 ## Source repositories
 
 The thesis-era code was consolidated from three repositories, each of which
-carries a `pre-cleanup` tag preserving its original committed state:
+carries a `pre-cleanup` tag preserving its original committed state. This
+repository was named `RJMCMC` until September 2026; its history, tags, and the
+revisions cited below all predate the rename to `RJBNN`.
 
 | Repository | Revision inspected | Contributes |
 |---|---|---|
-| `RJMCMC` | `bc0f872` | This repository, and its pre-consolidation history |
+| `RJBNN` | `bc0f872` | This repository, and its pre-consolidation history |
 | `BostonHousing` | [`3a2c64d`](https://github.com/jberezow/BostonHousing/tree/3a2c64d0b8c0f1483f018ab6db0fcb2365a91021) | Variable-depth model, layer proposals, depth sampler, data |
 | `OptDigits` | [`ff0b6e3`](https://github.com/jberezow/OptDigits/tree/ff0b6e3f8ddb15326bd8ddd8f65aecf4b264954e) | Variable-width model, node proposals, width sampler, XOR and OptDigits data |
 
