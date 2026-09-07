@@ -25,7 +25,7 @@ repository. Place them in `data/optdigits/`, or point `OPTDIGITS_DIR` or
 julia --project=. scripts/run_optdigits.jl --config=experiments/optdigits/10-class-a.toml --chain=3
 ```
 
-The runner advances one chain. `--chain=i` reproduces the historical chain `i`,
+The runner advances one chain. `--chain=i` uses the initialization schedule of historical chain `i`,
 starting at hidden width `initial_width_stride * i`; `--iterations`,
 `--candidates`, `--initial-width`, `--seed`, and `--output` override the
 configuration for shorter runs. The original runners ran 16 such chains across
@@ -37,7 +37,7 @@ digits 0–4; the historical arrays encode class labels starting at 1.
 `nuts_samples`, `nuts_adaptation`, and `nuts_delta_max` record the original
 globals `m`, `m2`, and `Δ_max`; the target acceptance is `acc_prob`.
 
-## Sources and migration notes
+## Sources and reproducibility
 
 The settings were extracted from `main.jl`, `BNN.jl`, `LoadData.jl`, and
 `program.sh` in the four directories above at OptDigits commit
@@ -71,8 +71,16 @@ counts. Three of its behaviors are preserved deliberately:
   same array, using seeds 1 and 300. The test-seed comment says 2, but the call
   uses 300.
 
-Dataset provenance and sampling are still under review. Establish both before
-choosing a distribution method or claiming reproduction of the reported results.
+The source arrays were identified as the UCI OptDigits training and test
+partitions concatenated in that order, using their per-class counts; dataset
+redistribution licensing remains unresolved. The historical data pipeline and
+archived-trace evaluation reproduce the Chapter 7 Top-1 accuracies within
+0.1 percentage points for all four experiments; convergence of fresh full-length
+MCMC runs to those figures has not been verified (see
+[provenance](../../docs/provenance.md)).
+
+The historical training and evaluation samples overlap, so these reproduced
+accuracies should not be interpreted as results on a strictly held-out test set.
 
 `MultivariateStats` is pinned to 0.8.0 because `transform` was renamed to
 `predict` in 0.9 and removed in 0.10.
