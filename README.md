@@ -68,9 +68,8 @@ The noisy variant can be selected with
 ## Run the OptDigits experiment
 
 The OptDigits experiments apply the same variable-width sampler to handwritten
-digit classification. They need the `optdigits_x.jld` and `optdigits_y.jld`
-arrays, which are not distributed with the repository; place them in
-`data/optdigits/` or set `OPTDIGITS_DIR`.
+digit classification. The `optdigits_x.jld` and `optdigits_y.jld` arrays ship in
+`data/optdigits/`; set `OPTDIGITS_DIR` to read them from elsewhere.
 
 ```sh
 julia --project=. scripts/run_optdigits.jl \
@@ -79,8 +78,8 @@ julia --project=. scripts/run_optdigits.jl \
 ```
 
 The runner advances one chain, starting at the hidden width the historical
-chain index implies. The four thesis configurations and the loader's preserved
-behaviors are described in
+chain index implies. The four thesis configurations and the data preparation are
+described in
 [`experiments/optdigits/README.md`](experiments/optdigits/README.md).
 
 ## Run the Boston Housing experiment
@@ -95,8 +94,7 @@ julia --project=. scripts/run_boston.jl \
   --chain=1
 ```
 
-The four thesis configurations and the preserved details of the data
-preparation are described in
+The four thesis configurations and the data preparation are described in
 [`experiments/boston/README.md`](experiments/boston/README.md).
 
 ## Repository layout
@@ -106,14 +104,12 @@ src/          Models, inference algorithms, and reversible-jump proposals
 scripts/      Experiment runners and analysis scripts
 experiments/  Experiment configurations and usage notes
 data/         Input datasets
-docs/         Provenance and reproduction notes
 test/         Julia tests and short sampler checks
 archive/      NUTS lineage and thesis source backups
 ```
 
-The Boston Housing dataset is tracked in `data/`; the OptDigits arrays are not
-distributed and must be supplied. Generated results are written beneath
-`results/`, which is not tracked by Git.
+The Boston Housing and OptDigits datasets are tracked in `data/`. Generated
+results are written beneath `results/`, which is not tracked by Git.
 
 `Dockerfile` builds the Julia 1.6.1 reproduction environment and runs the test
 suite by default:
@@ -127,10 +123,11 @@ docker build -t rjbnn . && docker run --rm rjbnn
 Jonathan Berezowski. *Trans-dimensional Inference over Bayesian Neural
 Networks*. MSc thesis, UiT The Arctic University of Norway, 2021.
 
-The implementation was built with [Gen](https://www.gen.dev/) and preserves a
-custom NUTS implementation derived from earlier Julia/Turing code. The sampling
-method builds on Green's reversible-jump MCMC and the Hoffman--Gelman NUTS
-algorithm; source-level attribution is retained alongside the implementations.
+The implementation was built with [Gen](https://www.gen.dev/). The sampler
+builds on Green's reversible-jump MCMC and the Hoffman--Gelman NUTS algorithm,
+and the NUTS kernel derives from an earlier Julia implementation by Kai Xu,
+attributed in its source file.
 
-Repository cleanup and consolidation of the original thesis materials is
-ongoing.
+The archived `BostonHousing` and `OptDigits` repositories hold the per-chain
+output of the original runs, which is what the tables in the thesis were
+computed from; they are worth keeping alongside this one.

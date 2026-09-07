@@ -1,11 +1,11 @@
 # XOR experiment
 
-This is the first runnable slice of the consolidated thesis implementation. It
-uses the variable-width Bayesian neural network, node birth/death proposals,
-RJNUTS driver, and NUTS kernel preserved from the final `OptDigits` Docker
-experiments.
+A four-mode synthetic classification task, and the smallest demonstration of
+variable-width inference: it needs no external dataset. It uses the same
+Bayesian neural network, node birth/death proposals, RJNUTS driver, and NUTS
+kernel as the OptDigits experiments.
 
-The historical runtime target is Julia 1.6.1. From the repository root:
+The runtime target is Julia 1.6.1. From the repository root:
 
 ```sh
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
@@ -15,10 +15,9 @@ julia --project=. scripts/run_xor.jl \
   --samples-per-mode=2
 ```
 
-Remove the two command-line overrides to use the full historical sample count
-and iteration count. The current runner intentionally executes one chain; the
-`chains = 16` values in the configuration files record the original HPC runs
-and are not yet consumed by the runner.
+Remove the two command-line overrides to use the full sample and iteration
+counts. The runner executes a single chain; the `chains = 16` setting in the
+configuration files records the original 16-thread HPC runs.
 
 The runner saves its trace and acceptance information beneath `results/xor/`.
 Generate the analysis used by the thesis-style workflow with:
@@ -34,12 +33,12 @@ for the log posterior, test accuracy, hidden-width histogram, and
 posterior-averaged classification surface. Generated results are ignored by
 Git.
 
-Two historical configurations are retained:
+Two configurations:
 
 - `low-noise.toml`: diagonal mode covariance `0.015`
 - `noisy.toml`: diagonal mode covariance `0.1`
 
-The source files remain deliberately close to these historical inputs:
+The implementation follows these sources closely:
 
 - `OptDigits/dockerxor/BNN.jl`
 - `OptDigits/dockerxor/NUTS.jl`

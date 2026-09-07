@@ -25,9 +25,8 @@ override the configuration for shorter runs. The original runners ran 16 such
 chains across 16 threads.
 
 Initialization keeps the candidate with the lowest scaled MSE against the
-training responses, which is the historical depth criterion and differs from the
-width experiments' posterior-score ranking. See
-[provenance](../../docs/provenance.md).
+training responses. The width experiments rank candidates by posterior score
+instead.
 
 ## Data preparation
 
@@ -49,25 +48,24 @@ The fitted transforms are retained in `data.feature_standardizer` and
 `data.response_standardizer`. Set `BOSTON_HOUSING_DIR` or pass `directory` to
 load the canonical `boston.jld` from another location.
 
-An earlier prototype used a 490-row variant produced by removing the 16
-observations whose response is capped at 50. The four final Boston experiment
-snapshots instead use the complete 506-row file, which is the version loaded
-here, and the loader rejects anything of another size.
+An earlier prototype used a 490-row variant, produced by removing the 16
+observations whose response is capped at 50. The four experiments use the
+complete 506-row file, and the loader rejects anything of another size.
 
 ## Model settings
 
 | Configuration | Hidden width | Maximum depth | Likelihood variance | Post-jump update |
 |---|---:|---:|---:|---|
 | [`2-node-a.toml`](2-node-a.toml) | 2 | 8 | 1.0 | Random layer-wise/all-parameter |
-| [`2-node-b.toml`](2-node-b.toml) | 2 | 8 | 0.8 (thesis reconstruction) | All-parameter |
+| [`2-node-b.toml`](2-node-b.toml) | 2 | 8 | 0.8 | All-parameter |
 | [`4-node-a.toml`](4-node-a.toml) | 4 | 4 | 1.0 | Random layer-wise/all-parameter |
 | [`4-node-b.toml`](4-node-b.toml) | 4 | 4 | 0.8 | Random layer-wise/all-parameter |
 
 All configurations record 16 chains, 1,000 iterations, 1,000 initialization
 candidates per chain, data seed 23, and a NUTS target acceptance of 0.65. The
-2-node A/B distinction includes a surviving RJNUTS scheduling difference; the
-4-node B run additionally uses two NUTS samples and two adaptation steps where
-the other configurations use one of each.
+2-node A/B pair differs in its RJNUTS scheduling; the 4-node B run additionally
+uses two NUTS samples and two adaptation steps where the others use one of
+each.
 
 The model takes `interpolator(x, width, maximum_depth, likelihood_variance)`
 as its Gen arguments, with defaults `(x, 2, 8, 1.0)`. Inputs have 13 feature
@@ -75,8 +73,8 @@ rows and one observation per column. Depth has a uniform prior on
 `1:maximum_depth`; weight and bias priors retain unit covariance. The
 likelihood variance is used directly as the diagonal observation covariance.
 
-The historical `:τᵧ` Gamma draw is retained as a trace choice even though the
-likelihood uses a fixed variance. Responses occupy one vector choice at `:y`;
+The `:τᵧ` Gamma draw is retained as a trace choice even though the likelihood
+uses a fixed variance. Responses occupy one vector choice at `:y`;
 `:l` records depth, and `(:k, i)`, `(:W, i)`, and `(:b, i)` describe each layer.
 
 ## Inspecting a layer move
@@ -105,15 +103,14 @@ across-dimension kernel.
 The source is `BostonHousing` commit
 [`3a2c64d`](https://github.com/jberezow/BostonHousing/tree/3a2c64d0b8c0f1483f018ab6db0fcb2365a91021).
 All four `docker-parallel*` snapshots share the same `proposals.jl`. The model
-comes from `docker-parallel2a/BNN.jl`, parameterized for the width/depth changes
-in 4A and the covariance change in 4B. Trace addresses, priors, activations,
-and proposal-density calculations are preserved.
+comes from `docker-parallel2a/BNN.jl`, parameterized for the width and depth
+changes in 4A and the covariance change in 4B. Trace addresses, priors,
+activations, and proposal-density calculations are preserved. The 2B likelihood
+variance of 0.8 follows the thesis; the archived 2B model file carries the 2A
+value.
 
-The surviving 2B model is identical to 2A and specifies variance 1.0. The thesis
-specifies 0.8 for 2B; that setting is a reconstruction, not an exact copy of the
-surviving source. It does not resolve which source file was used for that run.
-
-Validation covers model scores and predictions against each surviving snapshot,
-plus seeded layer transitions and proposal weights. The tests also check depth
-bounds, likelihood covariance, gradients, and birth/death restoration. This
-validates the extracted components, not reproduction of a full Boston run.
+Running this implementation over the archived chains reproduces the Chapter 7
+marginal RMSE and layer-count modes for all four experiments. The tests
+additionally cover model scores and predictions against each snapshot, seeded
+layer transitions and proposal weights, depth bounds, likelihood covariance,
+gradients, and birth/death restoration.

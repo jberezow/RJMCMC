@@ -14,6 +14,4 @@ COPY experiments ./experiments
 COPY test ./test
 COPY data ./data
 
-# The OptDigits arrays are not distributed with the repository. Mount them at
-# /app/data/optdigits, or set OPTDIGITS_DIR, to run those experiments.
 CMD ["julia", "--project=.", "-e", "using Pkg; Pkg.test()"]

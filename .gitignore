@@ -1,9 +1,9 @@
 *.pdf
 .ipynb_checkpoints/
-*.jld
 *.bson
 *.cov
 *.mem
 results/
 /home/
 /runs/
+/LaTeX_Backups/Thesis/
