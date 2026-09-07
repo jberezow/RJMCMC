@@ -130,4 +130,4 @@ attributed in its source file.
 
 The archived `BostonHousing` and `OptDigits` repositories hold the per-chain
 output of the original runs, which is what the tables in the thesis were
-computed from; they are worth keeping alongside this one.
+computed from.
