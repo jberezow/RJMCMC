@@ -169,4 +169,5 @@ end
 end
 
 include("boston_data.jl")
+include("boston_configs.jl")
 include("depth_bnn.jl")

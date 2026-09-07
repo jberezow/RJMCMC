@@ -39,12 +39,18 @@ the version loaded here.
 
 ## Model settings
 
-| Thesis experiment | Hidden width | Maximum depth | Likelihood variance |
-|---|---:|---:|---:|
-| 2A | 2 | 8 | 1.0 |
-| 2B | 2 | 8 | 0.8 (thesis reconstruction) |
-| 4A | 4 | 4 | 1.0 |
-| 4B | 4 | 4 | 0.8 |
+| Configuration | Hidden width | Maximum depth | Likelihood variance | Post-jump update |
+|---|---:|---:|---:|---|
+| [`2-node-a.toml`](2-node-a.toml) | 2 | 8 | 1.0 | Random layer-wise/all-parameter |
+| [`2-node-b.toml`](2-node-b.toml) | 2 | 8 | 0.8 (thesis reconstruction) | All-parameter |
+| [`4-node-a.toml`](4-node-a.toml) | 4 | 4 | 1.0 | Random layer-wise/all-parameter |
+| [`4-node-b.toml`](4-node-b.toml) | 4 | 4 | 0.8 | Random layer-wise/all-parameter |
+
+All configurations record 16 chains, 1,000 iterations, 1,000 initialization
+candidates per chain, data seed 23, and a NUTS target acceptance of 0.65. The
+2-node A/B distinction includes a surviving RJNUTS scheduling difference; the
+4-node B run additionally uses two NUTS samples and two adaptation steps where
+the other configurations use one of each.
 
 The model takes `interpolator(x, width, maximum_depth, likelihood_variance)`
 as its Gen arguments, with defaults `(x, 2, 8, 1.0)`. Inputs have 13 feature

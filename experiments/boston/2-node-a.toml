@@ -1,0 +1,14 @@
+# Source: BostonHousing/docker-parallel2a at 3a2c64d0b8c0f1483f018ab6db0fcb2365a91021
+name = "Boston Housing 2-node A"
+hidden_width = 2
+maximum_depth = 8
+likelihood_variance = 1.0
+data_seed = 23
+iterations = 1000
+chains = 16
+initial_candidates = 1000
+target_acceptance = 0.65
+nuts_samples = 1
+nuts_adaptation = 1
+nuts_delta_max = 1000
+within_dimension_update = "mixed"

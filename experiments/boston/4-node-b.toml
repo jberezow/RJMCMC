@@ -1,0 +1,14 @@
+# Source: BostonHousing/docker-parallel4b at 3a2c64d0b8c0f1483f018ab6db0fcb2365a91021
+name = "Boston Housing 4-node B"
+hidden_width = 4
+maximum_depth = 4
+likelihood_variance = 0.8
+data_seed = 23
+iterations = 1000
+chains = 16
+initial_candidates = 1000
+target_acceptance = 0.65
+nuts_samples = 2
+nuts_adaptation = 2
+nuts_delta_max = 1000
+within_dimension_update = "mixed"
