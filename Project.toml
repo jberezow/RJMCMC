@@ -7,6 +7,7 @@ version = "0.1.0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 Gen = "ea4f424c-a589-11e8-07c0-fd5c91b9da4a"
+JLD = "4138dd39-2aa7-5051-a626-17a0bb65d9c8"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MultivariateStats = "6f286f6a-111f-5878-ab1e-185364afe411"
 PDMats = "90014a1f-27ba-587c-ab20-58faa44d9150"
@@ -20,13 +21,15 @@ TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 Distributions = "=0.24.18"
 Flux = "=0.12.1"
 Gen = "=0.4.1"
+JLD = "=0.13.5"
 MultivariateStats = "=0.8.0"
 PDMats = "=0.10.1"
 ReverseDiff = "=1.4.3"
 julia = "1.6"
 
 [extras]
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Statistics", "Test"]

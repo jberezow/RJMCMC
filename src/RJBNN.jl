@@ -3,6 +3,7 @@ module RJBNN
 using Gen
 using Distributions
 using Flux
+using JLD
 using LinearAlgebra
 using MultivariateStats
 using Random
@@ -38,6 +39,7 @@ include("inference/nuts.jl")
 include("inference/chains.jl")
 include("data/xor.jl")
 include("data/optdigits.jl")
+include("data/boston.jl")
 include("proposals/node_birth_death.jl")
 include("inference/width_rjnuts.jl")
 
@@ -49,6 +51,7 @@ export DepthBNN,
        XORResult,
        OptDigitsData,
        OptDigitsResult,
+       BostonData,
        generate_xor_data,
        prepare_xor!,
        run_xor,
@@ -57,6 +60,8 @@ export DepthBNN,
        prepare_optdigits!,
        run_optdigits,
        optdigits_directory,
+       load_boston,
+       boston_directory,
        initial_trace,
        best_initial_trace,
        run_chain,

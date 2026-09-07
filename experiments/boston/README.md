@@ -8,8 +8,34 @@ classifiers used for XOR and OptDigits.
 The implementation is available as `RJBNN.DepthBNN` in
 [`src/models/depth_bnn.jl`](../../src/models/depth_bnn.jl), with layer birth/death
 moves in `RJBNN.LayerProposals`
-([source](../../src/proposals/layer_birth_death.jl)). The Boston data loader and
-full RJNUTS experiment runner are not yet included.
+([source](../../src/proposals/layer_birth_death.jl)). The data loader is
+available as `RJBNN.load_boston`; the full RJNUTS experiment runner is not yet
+included.
+
+## Data preparation
+
+The canonical stored dataset contains 506 rows and 14 columns: 13 predictors
+and the median home-value response. The historical workflow shuffles the rows
+with seed 23, fits separate z-score transforms to the predictors and response
+using all 506 rows, and then splits the standardized data into 253 training and
+253 test observations. Inputs are transposed to the
+`features × observations` orientation used by the model.
+
+```julia
+using RJBNN
+data = load_boston()
+size(data.x_train) # (13, 253)
+size(data.x_test)  # (13, 253)
+```
+
+The fitted transforms are retained in `data.feature_standardizer` and
+`data.response_standardizer`. Set `BOSTON_HOUSING_DIR` or pass `directory` to
+load the canonical `boston.jld` from another location.
+
+The earlier `docker_bh` snapshot contains a 490-row variant produced by
+removing the 16 observations whose response is capped at 50. The four final
+Boston experiment snapshots instead use the complete 506-row file, which is
+the version loaded here.
 
 ## Model settings
 
